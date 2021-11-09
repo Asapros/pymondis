@@ -1,0 +1,4 @@
+httpx~=0.20.0
+backoff~=1.11.1
+attrs~=21.2.0
+setuptools~=57.4.0

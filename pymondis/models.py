@@ -1,311 +1,330 @@
-from typing import List
+from datetime import datetime
+from typing import List, Tuple
 
-from pymondis.abc import ABCCamp, ABCTransport, ABCEventReservationSummary, ABCResource, ABCHTTPClient
-from pymondis.client import HTTPClient
-from pymondis.enums import Castle, CampLevel, World, Season, EventReservationOption
-from pymondis.util import parse_date, get_enum_element, default_backoff
+from attr import attrib, attrs
+from attr.validators import instance_of, optional, deep_iterable
 
-"""
-class CrewMember:
-    __slots__ = "_client", "name", "surname", "character", "role", "description", "photo_url", "photo_md5", "photo"
-
-    def __init__(self, client, name, surname, character, role, description, photo_url):
-        self._client = client
-        self.name = name
-        self.surname = surname
-        self.character = character
-        self.description = description
-        self.photo_url = photo_url
-        self.photo_md5 = None
-        self.photo = None
-
-        for iter_role in CrewRole:
-            if role == iter_role.value:
-                self.role = iter_role
-                break
-        else:
-            raise ValueError("{} is not a valid crew role".format(role))
-
-    async def get_photo(self, use_cache=True, update_cache=True):
-        content, md5 = await self._client.get_resource(self.photo_url, self.photo_md5 if use_cache else None,
-                                                       self.photo)
-        if update_cache:
-            self.photo_md5 = md5
-            self.photo = content
-        return content
-
-    def __str__(self):
-        return "{}(name/surname: {} {}, character: {}, role: {})".format(self.__class__.__name__, self.name,
-                                                                         self.surname, self.character, self.role.value)
+from .abstract.api import ABCHTTPClient
+from .abstract.models import ABCResource, ABCGallery, ABCGalleryPhoto, ABCCamp, ABCCampTransport, ABCPurchaser, \
+    ABCPersonalReservationInfo, ABCEventReservationSummary
+from .api import HTTPClient
+from .enums import Castle, CampLevel, World, Season, EventReservationOption
+from .util import enum_converter, date_converter
 
 
-class Photo:
-    __slots__ = "url", "enlarged_url", "_client", "image", "large_image", "image_md5", "large_image_md5"
-
-    def __init__(self, client, url, enlarged_url):
-        self.url = url
-        self._client = client
-        self.enlarged_url = enlarged_url
-        self.image = None
-        self.image_md5 = None
-        self.large_image = None
-        self.large_image_md5 = None
-
-    async def get_image(self, use_cache=True, update_cache=True):
-        content, md5 = await self._client.get_resource(self.url, self.image_md5 if use_cache else None, self.image)
-        if update_cache:
-            self.image_md5 = md5
-            self.image = content
-        return content
-
-    async def get_large_image(self, use_cache=True, update_cache=True):
-        content, md5 = await self._client.get_resource(self.url, self.large_image_md5 if use_cache else None,
-                                                       self.large_image)
-        if update_cache:
-            self.large_image_md5 = md5
-            self.large_image = content
-        return content
-
-    @property
-    def uuid(self):
-        return UUID(self.url[-36:-1])
-
-    def __str__(self):
-        return "{}(path: {})".format(self.__class__.__name__, urlparse(self.url).path)
-
-
-class PlebisciteCandidate:
-    __slots__ = "_client", "name", "votes", "category", "plebiscite_name", "voted"
-
-    def __init__(self, client, name: str, votes: int, category: str, plebiscite_name: str,
-                 voted: bool):  # TODO 15+ listopada - co pokazuje się zamast wartości "votes"?
-        self._client = client
-        self.name = name
-        self.votes = votes
-        self.category = category
-        self.plebiscite_name = plebiscite_name
-        self.voted = voted
-
-    @on_exception(expo, HTTPStatusError, max_tries=3, giveup=lambda status: 400 <= status.response.status_code < 500)
-    async def vote(self, ignore_revote=False):
-        if not ignore_revote and self.voted:
-            raise RevoteError("Tried to vote for a candidate second time")
-        response = await self._client.patch("{}/Vote/{}/{}".format(self._client.base_url, self.category,
-                                                                   self.name))  # Dalej mnie zastanawia czemu PATCH, a nie POST...
-        response.raise_for_status()
-
-    def __str__(self):
-        return "{}(name: {}, votes: {}, category: {}, plebiscite: {}, voted: {})".format(self.__class__.__name__,
-                                                                                         self.name, self.votes,
-                                                                                         self.category,
-                                                                                         self.plebiscite_name,
-                                                                                         self.voted)
-
-
-class Gallery:
-    __slots__ = "start", "end", "has_photos", "gallery_id", "name", "_client"
-
-    def __init__(self, client, gallery_id: int, name: str, has_photos: bool, start: datetime, end: datetime):
-        self._client = client
-        self.gallery_id = gallery_id
-        self.name = name
-        self.has_photos = has_photos
-        self.start = start
-        self.end = end
-
-    @on_exception(expo, HTTPStatusError, max_tries=3, giveup=lambda status: 400 <= status.response.status_code < 500)
-    async def get_photos(self) -> List[Photo]:
-        response = await self._client.get(
-            "{}/Images/Galeries/{}".format(self._client.base_url, self.gallery_id),
-            headers={"Accept": "application/json"}
+@attrs(str=True, slots=True)
+class Resource(ABCResource):
+    url = attrib(
+        type=str,
+        validator=instance_of(str)
+    )
+    _http = attrib(
+        type=ABCHTTPClient | None,
+        default=None,
+        validator=optional(
+            instance_of(ABCHTTPClient)
         )
-        response.raise_for_status()
-        photos = []
-        for element in response.json():
-            photos.append(Photo(self, element["AlbumUrl"], element["EnlargedUrl"]))
-        return photos
+    )
+    _cache_time = attrib(
+        type=datetime | None,
+        default=None,
+        validator=optional(
+            instance_of(datetime)
+        ),
+        kw_only=True
+    )
+    _cache_content = attrib(
+        type=bytes | None,
+        default=None,
+        kw_only=True
+    )
 
-    def __str__(self):
-        return "{}(id: {}, name: {}, empty: {}, start: {}, end: {})".format(self.__class__.__name__, self.gallery_id,
-                                                                            self.name, not self.has_photos, self.start,
-                                                                            self.end)
-"""
+    async def get(self, use_cache: bool = True, update_cache: bool = True, http: ABCHTTPClient | None = None) -> bytes:
+        arguments = self._cache_time, self._cache_content if use_cache else ()
+        async with http or self._http or HTTPClient() as client:
+            content = await client.get_resource(self.url, *arguments)
+        if update_cache:
+            self._cache_time = datetime.now()
+            self._cache_content = content
+        return content
+
+    def __eq__(self, other: "Resource") -> bool:
+        return self.url == other.url
 
 
-class EventReservationSummary(ABCEventReservationSummary):
+@attrs(str=True, slots=True, frozen=True, hash=True)
+class Gallery(ABCGallery):
+    @attrs(str=True, slots=True, frozen=True, hash=True)
+    class Photo(ABCGalleryPhoto):
+        normal = attrib(
+            type=ABCResource,
+            validator=instance_of(ABCResource)
+        )
+        large = attrib(
+            type=ABCResource,
+            validator=instance_of(ABCResource)
+        )
 
-    def __init__(
-            self,
-            option: EventReservationOption,
-            name: str,
-            surname: str,
-            parent_name: str,
-            parent_surname: str,
-            phone: int,
-            email: str,
-            price: int | None = None,
-            parent_reused: bool = False,
-            first_parent_name: str | None = None,
-            first_parent_surname: str | None = None,
-            second_parent_name: str | None = None,
-            second_parent_surname: str | None = None
-    ):
-        self.price = price
-        self.option = option
-        self.name = name
-        self.surname = surname
-        self.parent_name = parent_name
-        self.parent_surname = parent_surname
-        self.phone = phone
-        self.email = email
-        self.parent_reused = parent_reused
-        self.first_parent_name = first_parent_name
-        self.first_parent_surname = first_parent_surname
-        self.second_parent_name = second_parent_name
-        self.second_parent_surname = second_parent_surname
-        if price is None:
-            match option:
-                case EventReservationOption.CHILD:
-                    self.price = 450
-                case EventReservationOption.CHILD_AND_ONE_PARENT:
-                    self.price = 900
-                case EventReservationOption.CHILD_AND_TWO_PARENTS:
-                    self.price = 1300
-                case _:
-                    raise ValueError("Option is not one of the enum elements")
+    gallery_id = attrib(
+        type=int,
+        validator=instance_of(int)
+    )
+    start = attrib(
+        type=datetime,
+        validator=instance_of(datetime)
+    )
+    end = attrib(
+        type=datetime,
+        validator=instance_of(datetime)
+    )
+    name = attrib(
+        type=str,
+        validator=instance_of(str)
+    )
+    empty = attrib(
+        type=bool,
+        validator=instance_of(bool)
+    )
+    _http = attrib(
+        type=ABCHTTPClient | None,
+        default=None,
+        validator=optional(
+            instance_of(ABCHTTPClient)
+        )
+    )
 
-    def jsonify(self) -> dict:
-        # Naśladuje dziwne zachowanie formularza na stronie, trzeba sprawdzić czy to działa w inny sposób bo te if-y na końcu to tragedia
-        json = {
-            "Price": str(self.price),
-            "Option": self.option.value,
+    async def get_photos(self, http: ABCHTTPClient | None = None) -> Tuple[Photo, ...]:
+        async with http or self._http or HTTPClient() as client:
+            photos = await client.get_gallery(self.gallery_id)
+        return (
+            self.Photo(
+                Resource(photo["AlbumUrl"], client),
+                Resource(photo["EnlargedUrl"], client)
+            )
+            for photo in photos
+        )
+
+    def __eq__(self, other: "Gallery") -> bool:
+        return self.gallery_id == other.gallery_id
+
+
+@attrs(str=True, slots=True, frozen=True, hash=True)
+class Camp(ABCCamp):
+    @attrs(str=True, slots=True, frozen=True, hash=True)
+    class Transport(ABCCampTransport):
+        city = attrib(
+            type=str,
+            validator=instance_of(str)
+        )
+        one_way_price = attrib(
+            type=int,
+            validator=instance_of(int)
+        )
+        two_way_price = attrib(
+            type=int,
+            validator=instance_of(int)
+        )
+
+    camp_id = attrib(
+        type=int,
+        validator=instance_of(int)
+    )
+    code = attrib(
+        type=str,
+        validator=instance_of(str)
+    )
+    place = attrib(
+        type=Castle,
+        converter=enum_converter(Castle),
+        validator=instance_of(Castle)
+    )
+    price = attrib(
+        type=int,
+        validator=instance_of(int)
+    )
+    promo = attrib(
+        type=int | None,
+        validator=optional(instance_of(int))
+    )
+    active = attrib(
+        type=bool,
+        validator=instance_of(bool)
+    )
+    places_left = attrib(
+        type=int,
+        validator=instance_of(int)
+    )
+    program = attrib(
+        type=str,
+        validator=instance_of(str)
+    )
+    level = attrib(
+        type=CampLevel,
+        converter=enum_converter(CampLevel),
+        validator=instance_of(CampLevel)
+    )
+    world = attrib(
+        type=World,
+        converter=enum_converter(World),
+        validator=instance_of(World)
+    )
+    season = attrib(
+        type=Season,
+        converter=enum_converter(Season),
+        validator=instance_of(Season)
+    )
+    trip = attrib(
+        type=str | None,
+        validator=optional(instance_of(str))
+    )
+    start = attrib(
+        type=datetime,
+        converter=date_converter,
+        validator=instance_of(datetime)
+    )
+    end = attrib(
+        type=datetime,
+        converter=date_converter,
+        validator=instance_of(datetime)
+    )
+    ages = attrib(
+        type=List[str],
+        validator=deep_iterable(instance_of(str))
+    )
+    transports = attrib(
+        type=List[ABCCampTransport],
+        validator=deep_iterable(instance_of(ABCCampTransport))
+    )
+
+    @classmethod
+    def init_from_dict(cls, data: dict):
+        return cls(
+            data["Id"],
+            data["Code"],
+            data["Place"],
+            data["Price"],
+            data["Promo"],
+            data["IsActive"],
+            data["PlacesLeft"],
+            data["Program"],
+            data["Level"],
+            data["World"],
+            data["Season"],
+            data["Trip"],
+            data["StartDate"],
+            data["EndDate"],
+            data["Ages"],
+            [
+                CampTransport(
+                    transport["City"],
+                    transport["OneWayPrice"],
+                    transport["TwoWayPrice"]
+                ) for transport in data["Transports"]
+            ]
+        )
+
+
+@attrs(str=True, slots=True, frozen=True, hash=True)
+class Purchaser(ABCPurchaser):
+    name = attrib(
+        type=str,
+        validator=instance_of(str)
+    )
+    surname = attrib(
+        type=str,
+        validator=instance_of(str)
+    )
+    email = attrib(
+        type=str,
+        validator=instance_of(str)
+    )
+    phone = attrib(
+        type=str,
+        validator=instance_of(str)
+    )
+    parcel_locker = attrib(
+        type=str,
+        validator=instance_of(str)
+    )
+
+    def to_dict(self) -> dict:
+        return {
             "Name": self.name,
             "Surname": self.surname,
-            "ParentName": self.parent_name,
-            "ParentSurname": self.parent_surname,
-            "IsParentReused": None if self.option is EventReservationOption.CHILD else self.parent_reused,
-            "Phone": str(self.phone),
             "Email": self.email,
-            "SecondParentName": self.second_parent_name,
-            "SecondParentSurname": self.second_parent_surname
+            "Phone": self.phone,
+            "ParcelLocker": self.parcel_locker
         }
-        if not self.parent_reused:
-            json.update({"FirstParentName": self.first_parent_name, "FirstParentSurname": self.first_parent_surname})
-        if self.option is EventReservationOption.CHILD:
-            json.update({"FirstParentName": "", "FirstParentSurname": ""})
-
-        return json
 
 
-class Camp(ABCCamp):
-    class Transport(ABCTransport):
-
-        def __init__(
-                self,
-                city: str,
-                one_way_price: int,
-                two_way_price: int
-        ):
-            self.city = city
-            self.one_way_price = one_way_price
-            self.two_way_price = two_way_price
-
-        def __str__(self) -> str:
-            return "{}(city: {}, prices (one/two way): {}/{})".format(self.__class__.__name__, self.city,
-                                                                      self.one_way_price, self.two_way_price)
-
-    def __init__(
-            self,
-            camp_id: int,
-            code: str,
-            place: str,
-            price: int,
-            promo: int | None,
-            active: bool,
-            places_left: int,
-            program: str,
-            level: str,
-            world: str,
-            season: str,
-            trip: str,
-            start: str,
-            end: str,
-            ages: List[str],
-            transports: List[ABCTransport]
-    ):
-        self.camp_id = camp_id
-        self.code = code
-        self.place = get_enum_element(Castle, place)
-        self.price = price
-        self.promo = promo
-        self.active = active
-        self.places_left = places_left
-        self.program = program
-        self.level = get_enum_element(CampLevel, level)
-        self.world = get_enum_element(World, world)
-        self.season = get_enum_element(Season, season)
-        self.trip = trip if trip else None
-        self.start = parse_date(start)
-        self.end = parse_date(end)
-        self.ages = ages
-        self.transports = transports
-
-    @property
-    def current_price(self) -> int:
-        if self.promo is None:
-            return self.price
-        return self.promo
-
-    def __str__(self):
-        return "{}(id: {}, code: {}, place: {}, current price: {}, active: {}, places left: {}, program: {}, level: {}, world: {}, season: {}, trip: {}, start: {}, end: {}, transports: [{}])".format(
-            self.__class__.__name__,
-            self.camp_id,
-            self.code,
-            self.place,
-            self.current_price,
-            self.active,
-            self.places_left,
-            self.program,
-            self.level.name,
-            self.world.name,
-            self.season.name,
-            self.trip,
-            self.start,
-            self.end,
-            ", ".join(
-                [
-                    str(transport) for transport in self.transports
-                ]
-            )
-        )
+@attrs(str=True, slots=True, frozen=True, hash=True)
+class PersonalReservationInfo(ABCPersonalReservationInfo):
+    reservation_id = attrib(
+        type=str,
+        validator=instance_of(str)
+    )
+    surname = attrib(
+        type=str,
+        validator=instance_of(str)
+    )
 
 
-class Resource(ABCResource):
-    def __init__(self, url: str, client: ABCHTTPClient | None = None):
-        self.url = url
-        self._client = client
-        self.md5 = None
-        self.content = None
+@attrs(str=True, slots=True, frozen=True, hash=True)
+class EventReservationSummary(ABCEventReservationSummary):
+    price = attrib(
+        type=int,
+        validator=instance_of(int)
+    )
+    option = attrib(
+        type=EventReservationOption,
+        converter=enum_converter(EventReservationOption),
+        validator=instance_of(EventReservationOption)
+    )
+    name = attrib(
+        type=str,
+        validator=instance_of(str)
+    )
+    surname = attrib(
+        type=str,
+        validator=instance_of(str)
+    )
+    parent_name = attrib(
+        type=str,
+        validator=instance_of(str)
+    )
+    parent_surname = attrib(
+        type=str,
+        validator=instance_of(str)
+    )
+    parent_reused = attrib(
+        type=bool,
+        validator=instance_of(bool)
+    )
+    phone = attrib(
+        type=str,
+        validator=instance_of(str)
+    )
+    email = attrib(
+        type=str,
+        validator=instance_of(str)
+    )
+    first_parent_name = attrib(
+        type=str | None,
+        validator=optional(instance_of(str))
+    )
+    first_parent_surname = attrib(
+        type=str | None,
+        validator=optional(instance_of(str))
+    )
+    second_parent_name = attrib(
+        type=str | None,
+        validator=optional(instance_of(str))
+    )
+    second_parent_surname = attrib(
+        type=str | None,
+        validator=optional(instance_of(str))
+    )
 
-    @default_backoff
-    async def get(self, use_cache: bool = True, update_cache: bool = True, client: HTTPClient | None = None) -> bytes:
-        client = self._client or client
-        if client is None:
-            raise ValueError("No client found. Pass one in the constructor or directly in Resource.get")
-        if use_cache:
-            head = await client.head(self.url)
-            head.raise_for_status()
-            if self.md5 == head.headers["Content-MD5"]:
-                return self.content
-        response = await client.get(self.url)
-        response.raise_for_status()
-        if update_cache:
-            self.md5 = response.headers["Content-MD5"]
-            self.content = response.content
-        return response.content
 
-    def __str__(self) -> str:
-        return "{}(url: {})".format(self.__class__.__name__, self.url)
-
-
-Transport = Camp.Transport
+GalleryPhoto = Gallery.Photo
+CampTransport = Camp.Transport

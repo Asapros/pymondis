@@ -1,100 +1,56 @@
-import asyncio
+from typing import Iterable
 
-from httpx import AsyncClient
+from .abstract.api import ABCHTTPClient
+from .abstract.client import ABCClient
+from .abstract.models import ABCPlebisciteCandidate, ABCWebReservationModel, ABCCrewMember, ABCParentSurveyResult, \
+    ABCPurchaser, ABCGallery, ABCEventReservationSummary
+from .api import HTTPClient
+from .enums import Castle
+from .models import Camp
 
-from pymondis.abc import ABCHTTPClient, ABCPersonalReservationInfo, ABCWebReservationModel, ABCParentSurveyResult, \
-    ABCPurchaser
-from pymondis.enums import Castle, EventReservationOption
-from pymondis.models import Camp, Transport, EventReservationSummary
-from pymondis.util import default_backoff
 
+class Client(ABCClient):
+    def __init__(self, http: ABCHTTPClient = None):
+        if http is None:
+            self.http = HTTPClient()
+            return
+        self.http = http
 
-class HTTPClient(ABCHTTPClient, AsyncClient):
-    BASE: str = "https://quatromondisapi.azurewebsites.net/api"
+    async def get_camps(self) -> Iterable[Camp]:
+        camps = await self.http.get_camps()
+        return [Camp.init_from_dict(camp) for camp in camps]
 
-    @default_backoff
-    async def get_camps(self):
-        response = await self.get(self.BASE + "/Camps", headers={"Content-Type": "application/json"})
-        response.raise_for_status()
-        camps = [
-            Camp(
-                camp["Id"],
-                camp["Code"],
-                camp["Place"],
-                camp["Price"],
-                camp["Promo"],
-                camp["IsActive"],
-                camp["PlacesLeft"],
-                camp["Program"],
-                camp["Level"],
-                camp["World"],
-                camp["Season"],
-                camp["Trip"],
-                camp["StartDate"],
-                camp["EndDate"],
-                camp["Ages"],
-                [
-                    Transport(
-                        transport["City"],
-                        transport["OneWayPrice"],
-                        transport["TwoWayPrice"]
-                    ) for transport in camp["Transports"]
-                ]
-            ) for camp in response.json()
-        ]
-        return camps
-
-    @default_backoff
-    async def post_inauguration(self, summary: EventReservationSummary):
-        response = await self.post(self.BASE + "/Events/Inauguration", json=summary.jsonify())
-        response.raise_for_status()
-
-    @default_backoff
-    async def get_galleries(self, castle: Castle):
-        raise NotImplementedError()
-
-    @default_backoff
-    async def get_gallery(self, gallery_id: int):
-        raise NotImplementedError()
-
-    @default_backoff
-    async def post_fwb(self, purchaser: ABCPurchaser):
-        raise NotImplementedError()
-
-    @default_backoff
-    async def post_survey(self, survey_hash: str, result: ABCParentSurveyResult):
-        raise NotImplementedError()
-
-    @default_backoff
-    async def get_crew(self):
-        raise NotImplementedError()
-
-    @default_backoff
-    async def post_apply(self):
-        raise NotImplementedError()
-
-    @default_backoff
-    async def post_subscribe(self, reservation: ABCWebReservationModel):
-        raise NotImplementedError()
-
-    @default_backoff
-    async def post_manage(self, pri: ABCPersonalReservationInfo):
-        raise NotImplementedError()
-
-    @default_backoff
-    async def patch_vote(self, category: str, name: str):
-        raise NotImplementedError()
-
-    @default_backoff
-    async def get_plebiscite(self, year: int):
+    async def reserve_inauguration(self, reservation: ABCEventReservationSummary):
         pass
 
-    async def __aenter__(self) -> "HTTPClient":  # Type-hinting
-        return await super().__aenter__()
+    async def get_galleries(self, castle: Castle) -> Iterable[ABCGallery]:
+        pass
 
-async def main():
-    async with HTTPClient() as c:
-        await c.post_inauguration(EventReservationSummary(EventReservationOption.CHILD, name="a", surname="b", parent_name="c", parent_surname="d", phone="e", email="f"))
+    async def order_fwb(self, purchaser: ABCPurchaser):
+        await self.http.post_fwb(purchaser.to_dict())
 
+    async def submit_survey(self, survey_hash: str, result: ABCParentSurveyResult):
+        pass
 
-asyncio.run(main())
+    async def get_crew(self) -> Iterable[ABCCrewMember]:
+        pass
+
+    async def apply_for_job(self):
+        raise NotImplementedError()
+        # @ .api.HTTPClient.post_apply
+
+    async def reserve_camp(self, reservation: ABCWebReservationModel) -> Iterable[str]:
+        pass
+
+    async def vote_for_plebiscite(self, category: str, name: str):
+        pass
+
+    async def get_plebiscite(self, year: int) -> Iterable[ABCPlebisciteCandidate]:
+        pass
+
+    async def __aenter__(self) -> "Client":
+        await self.http.__aenter__()
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        return await self.http.__aexit__(exc_type, exc_val, exc_tb)
