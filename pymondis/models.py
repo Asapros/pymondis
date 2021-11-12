@@ -614,25 +614,29 @@ class PlebisciteCandidate(ABCPlebisciteCandidate):
         type=int | None,
         validator=v_optional(
             instance_of(int)
-        )
+        ),
+        default=None
     )
     plebiscite = attrib(
         type=str | None,
         validator=v_optional(
             instance_of(str)
-        )
+        ),
+        default=None
     )
     voted = attrib(
         type=bool | None,
         validator=v_optional(
             instance_of(bool)
-        )
+        ),
+        default=None
     )
     _http = attrib(
         type=ABCHTTPClient | None,
         validator=v_optional(
             instance_of(ABCHTTPClient)
         ),
+        default = None,
         repr=False
     )
 
