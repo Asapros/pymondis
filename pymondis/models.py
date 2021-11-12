@@ -1,18 +1,33 @@
 from datetime import datetime
-from typing import List, Tuple
+from typing import List
 
 from attr import attrib, attrs
-from attr.validators import instance_of, optional, deep_iterable
+from attr.validators import instance_of, optional as v_optional, deep_iterable
+from attr.converters import optional as c_optional
 
+from exceptions import RevoteError
 from .abstract.api import ABCHTTPClient
-from .abstract.models import ABCResource, ABCGallery, ABCGalleryPhoto, ABCCamp, ABCCampTransport, ABCPurchaser, \
-    ABCPersonalReservationInfo, ABCEventReservationSummary
+from .abstract.models import (
+    ABCResource,
+    ABCGallery,
+    ABCGalleryPhoto,
+    ABCCamp,
+    ABCCampTransport,
+    ABCPurchaser,
+    ABCPersonalReservationInfo,
+    ABCEventReservationSummary,
+    ABCCrewMember,
+    ABCPlebisciteCandidate,
+    ABCWebReservationModel,
+    ABCChild,
+    ABCReservationManageDetails
+)
 from .api import HTTPClient
-from .enums import Castle, CampLevel, World, Season, EventReservationOption
-from .util import enum_converter, date_converter
+from .enums import Castle, CampLevel, World, Season, EventReservationOption, CrewRole, TShirtSize, SourcePoll
+from .util import enum_converter, date_converter, character_converter
 
 
-@attrs(str=True, slots=True)
+@attrs(repr=True, slots=True)
 class Resource(ABCResource):
     url = attrib(
         type=str,
@@ -21,22 +36,25 @@ class Resource(ABCResource):
     _http = attrib(
         type=ABCHTTPClient | None,
         default=None,
-        validator=optional(
+        validator=v_optional(
             instance_of(ABCHTTPClient)
-        )
+        ),
+        repr=False
     )
     _cache_time = attrib(
         type=datetime | None,
         default=None,
-        validator=optional(
+        validator=v_optional(
             instance_of(datetime)
         ),
-        kw_only=True
+        kw_only=True,
+        repr=False
     )
     _cache_content = attrib(
         type=bytes | None,
         default=None,
-        kw_only=True
+        kw_only=True,
+        repr=False
     )
 
     async def get(self, use_cache: bool = True, update_cache: bool = True, http: ABCHTTPClient | None = None) -> bytes:
@@ -52,9 +70,9 @@ class Resource(ABCResource):
         return self.url == other.url
 
 
-@attrs(str=True, slots=True, frozen=True, hash=True)
+@attrs(repr=True, slots=True, frozen=True, hash=True)
 class Gallery(ABCGallery):
-    @attrs(str=True, slots=True, frozen=True, hash=True)
+    @attrs(repr=True, slots=True, frozen=True, hash=True)
     class Photo(ABCGalleryPhoto):
         normal = attrib(
             type=ABCResource,
@@ -65,52 +83,83 @@ class Gallery(ABCGallery):
             validator=instance_of(ABCResource)
         )
 
+        @classmethod
+        def init_from_dict(cls, data: dict, **kwargs) -> "Photo":
+            return cls(
+                normal=Resource(data["AlbumUrl"], **kwargs),
+                large=Resource(data["EnlargedUrl"], **kwargs)
+            )
+
     gallery_id = attrib(
         type=int,
         validator=instance_of(int)
     )
     start = attrib(
-        type=datetime,
-        validator=instance_of(datetime)
+        type=datetime | None,
+        converter=c_optional(
+            date_converter
+        ),
+        validator=v_optional(
+            instance_of(datetime)
+        ),
+        default=None
     )
     end = attrib(
-        type=datetime,
-        validator=instance_of(datetime)
+        type=datetime | None,
+        converter=c_optional(
+            date_converter
+        ),
+        validator=v_optional(
+            instance_of(datetime)
+        ),
+        default=None
     )
     name = attrib(
-        type=str,
-        validator=instance_of(str)
+        type=str | None,
+        validator=v_optional(
+            instance_of(str)
+        ),
+        default=None
     )
     empty = attrib(
-        type=bool,
-        validator=instance_of(bool)
+        type=bool | None,
+        validator=v_optional(
+            instance_of(bool)
+        ),
+        default=None
     )
     _http = attrib(
         type=ABCHTTPClient | None,
+        validator=v_optional(
+            instance_of(ABCHTTPClient),
+        ),
         default=None,
-        validator=optional(
-            instance_of(ABCHTTPClient)
-        )
+        repr=False
     )
 
-    async def get_photos(self, http: ABCHTTPClient | None = None) -> Tuple[Photo, ...]:
-        async with http or self._http or HTTPClient() as client:
-            photos = await client.get_gallery(self.gallery_id)
-        return (
-            self.Photo(
-                Resource(photo["AlbumUrl"], client),
-                Resource(photo["EnlargedUrl"], client)
-            )
+    async def get_photos(self, http: ABCHTTPClient | None = None) -> List[Photo]:
+        client = http or self._http or HTTPClient()
+        photos = await client.get_gallery(self.gallery_id)
+        return [
+            self.Photo.init_from_dict(photo, http=client)
             for photo in photos
+        ]
+
+    @classmethod
+    def init_from_dict(cls, data: dict, **kwargs) -> "Gallery":
+        return cls(
+            gallery_id=data["Id"],
+            start=data["StartDate"],
+            end=data["EndDate"],
+            name=data["Name"],
+            empty=not data["HasPhotos"],
+            **kwargs
         )
 
-    def __eq__(self, other: "Gallery") -> bool:
-        return self.gallery_id == other.gallery_id
 
-
-@attrs(str=True, slots=True, frozen=True, hash=True)
+@attrs(repr=True, slots=True, frozen=True, hash=True)
 class Camp(ABCCamp):
-    @attrs(str=True, slots=True, frozen=True, hash=True)
+    @attrs(repr=True, slots=True, frozen=True, hash=True)
     class Transport(ABCCampTransport):
         city = attrib(
             type=str,
@@ -124,6 +173,14 @@ class Camp(ABCCamp):
             type=int,
             validator=instance_of(int)
         )
+
+        @classmethod
+        def init_from_dict(cls, data: dict) -> "Transport":
+            return cls(
+                city=data["City"],
+                one_way_price=data["OneWayPrice"],
+                two_way_price=data["TwoWayPrice"]
+            )
 
     camp_id = attrib(
         type=int,
@@ -144,7 +201,9 @@ class Camp(ABCCamp):
     )
     promo = attrib(
         type=int | None,
-        validator=optional(instance_of(int))
+        validator=v_optional(
+            instance_of(int)
+        )
     )
     active = attrib(
         type=bool,
@@ -175,29 +234,35 @@ class Camp(ABCCamp):
     )
     trip = attrib(
         type=str | None,
-        validator=optional(instance_of(str))
+        validator=v_optional(
+            instance_of(str)
+        )
     )
     start = attrib(
         type=datetime,
-        converter=date_converter,
+        converter=lambda value: value if isinstance(value, datetime) else date_converter(value),
         validator=instance_of(datetime)
     )
     end = attrib(
         type=datetime,
-        converter=date_converter,
+        converter=lambda value: value if isinstance(value, datetime) else date_converter(value),
         validator=instance_of(datetime)
     )
     ages = attrib(
         type=List[str],
-        validator=deep_iterable(instance_of(str))
+        validator=deep_iterable(
+            instance_of(str)
+        )
     )
     transports = attrib(
         type=List[ABCCampTransport],
-        validator=deep_iterable(instance_of(ABCCampTransport))
+        validator=deep_iterable(
+            instance_of(ABCCampTransport)
+        )
     )
 
     @classmethod
-    def init_from_dict(cls, data: dict):
+    def init_from_dict(cls, data: dict) -> "Camp":
         return cls(
             data["Id"],
             data["Code"],
@@ -215,16 +280,13 @@ class Camp(ABCCamp):
             data["EndDate"],
             data["Ages"],
             [
-                CampTransport(
-                    transport["City"],
-                    transport["OneWayPrice"],
-                    transport["TwoWayPrice"]
-                ) for transport in data["Transports"]
+                cls.Transport.init_from_dict(transport)
+                for transport in data["Transports"]
             ]
         )
 
 
-@attrs(str=True, slots=True, frozen=True, hash=True)
+@attrs(repr=True, slots=True, frozen=True, hash=True)
 class Purchaser(ABCPurchaser):
     name = attrib(
         type=str,
@@ -257,7 +319,7 @@ class Purchaser(ABCPurchaser):
         }
 
 
-@attrs(str=True, slots=True, frozen=True, hash=True)
+@attrs(repr=True, slots=True, frozen=True, hash=True)
 class PersonalReservationInfo(ABCPersonalReservationInfo):
     reservation_id = attrib(
         type=str,
@@ -267,14 +329,137 @@ class PersonalReservationInfo(ABCPersonalReservationInfo):
         type=str,
         validator=instance_of(str)
     )
+    _http = attrib(
+        type=ABCHTTPClient | None,
+        validator=instance_of(ABCHTTPClient),
+        default=None,
+        repr=False
+    )
+
+    def to_dict(self) -> dict:
+        return {
+            "ReservationId": self.reservation_id,
+            "Surname": self.surname
+        }
+
+    async def get_info(self, http: ABCHTTPClient | None) -> ABCReservationManageDetails:
+        raise NotImplementedError()
 
 
-@attrs(str=True, slots=True, frozen=True, hash=True)
-class EventReservationSummary(ABCEventReservationSummary):
-    price = attrib(
+@attrs(repr=True, slots=True, frozen=True, hash=True)
+class WebReservationModel(ABCWebReservationModel):
+    class Child(ABCChild):
+        name = attrib(
+            type=str,
+            validator=instance_of(str)
+        )
+        surname = attrib(
+            type=str,
+            validator=instance_of(str)
+        )
+        t_shirt_size = attrib(
+            type=TShirtSize,
+            converter=enum_converter(TShirtSize),
+            validator=instance_of(TShirtSize)
+        )
+        birthdate = attrib(
+            type=datetime,
+            converter=date_converter,
+            validator=instance_of(datetime)
+        )
+
+        def to_dict(self) -> dict:
+            return {
+                "Name": self.name,
+                "Surname": self.surname,
+                "Tshirt": self.t_shirt_size.value,
+                "Dob": self.birthdate
+            }
+
+    camp_id = attrib(
         type=int,
         validator=instance_of(int)
     )
+    child = attrib(
+        type=Child,
+        validator=instance_of(ABCChild)
+    )
+    parent_name = attrib(
+        type=str,
+        validator=instance_of(str)
+    )
+    parent_surname = attrib(
+        type=str,
+        validator=instance_of(str)
+    )
+    nip = attrib(
+        type=str,
+        validator=instance_of(str)
+    )
+    email = attrib(
+        type=str,
+        validator=instance_of(str)
+    )
+    phone = attrib(
+        type=str,
+        validator=instance_of(str)
+    )
+    poll = attrib(
+        type=SourcePoll,
+        converter=enum_converter(SourcePoll),
+        validator=instance_of(SourcePoll)
+    )
+    siblings = attrib(
+        type=List[ABCChild],
+        validator=deep_iterable(
+            instance_of(ABCChild)
+        ),
+        factory=list
+    )
+    promo_code = attrib(
+        type=str | None,
+        validator=v_optional(
+            instance_of(str)
+        ),
+        default=None
+    )
+    _http = attrib(
+        type=ABCHTTPClient | None,
+        validator=v_optional(
+            instance_of(ABCHTTPClient)
+        ),
+        default=None,
+        repr=False
+    )
+
+    def to_dict(self) -> dict:
+        return {
+            "SubcampId": self.camp_id,
+            "Childs": {  # English 100
+                "Main": self.child.to_dict(),
+                "Siblings": [sibling.to_dict() for sibling in self.siblings]
+            },
+            "Parent": {
+                "Name": self.parent_name,
+                "Surname": self.parent_surname,
+                "Nip": self.nip
+            },
+            "Details": {
+                "Email": self.email,
+                "Phone": self.phone,
+                "Promo": self.promo_code,
+                "Poll": self.poll.value
+            }
+        }
+
+    @property
+    def pri(self, **kwargs) -> PersonalReservationInfo:
+        kwargs = {"http": self._http} | kwargs
+        return PersonalReservationInfo(self.camp_id, self.parent_surname, **kwargs)
+
+
+@attrs(repr=True, slots=True, frozen=True, hash=True)
+class EventReservationSummary(ABCEventReservationSummary):
     option = attrib(
         type=EventReservationOption,
         converter=enum_converter(EventReservationOption),
@@ -310,21 +495,165 @@ class EventReservationSummary(ABCEventReservationSummary):
     )
     first_parent_name = attrib(
         type=str | None,
-        validator=optional(instance_of(str))
+        validator=v_optional(
+            instance_of(str)
+        )
     )
     first_parent_surname = attrib(
         type=str | None,
-        validator=optional(instance_of(str))
+        validator=v_optional(
+            instance_of(str)
+        )
     )
     second_parent_name = attrib(
         type=str | None,
-        validator=optional(instance_of(str))
+        validator=v_optional(
+            instance_of(str)
+        )
     )
     second_parent_surname = attrib(
         type=str | None,
-        validator=optional(instance_of(str))
+        validator=v_optional(
+            instance_of(str)
+        )
     )
+    _price = attrib(
+        type=int,
+        validator=v_optional(
+            instance_of(int)
+        ),
+        kw_only=True
+    )
+
+    @property
+    def price(self) -> int:
+        if self._price is None:
+            match self.option:
+                case EventReservationOption.CHILD:
+                    return 450
+                case EventReservationOption.CHILD_AND_ONE_PARENT:
+                    return 900
+                case EventReservationOption.CHILD_AND_TWO_PARENTS:
+                    return 1300
+            raise ValueError("Option is not one of the enum elements")
+        return self._price
+
+    def to_dict(self) -> dict:
+        data = {
+            "Price": self.price,
+            "Name": self.name,
+            "Surname": self.surname,
+            "ParentName": self.parent_name,
+            "ParentSurname": self.parent_surname,
+            "IsParentReused": self.parent_reused,
+            "Phone": self.phone,
+            "Email": self.email
+        }
+        if self.option in (EventReservationOption.CHILD, EventReservationOption.CHILD_AND_PARENT):
+            data.update({"FirstParentName": self.first_parent_name, "FirstParentSurname": self.first_parent_surname})
+        if self.option is EventReservationOption.CHILD_AND_TWO_PARENTS:
+            data.update(
+                {"SecondParentName": self.second_parent_name, "SecondParentSurname": self.second_parent_surname})
+        return data
+
+
+@attrs(repr=True, slots=True, frozen=True, hash=True)
+class CrewMember(ABCCrewMember):
+    name = attrib(
+        type=str,
+        validator=instance_of(str)
+    )
+    surname = attrib(
+        type=str,
+        validator=instance_of(str)
+    )
+    character = attrib(
+        type=str | None,
+        converter=character_converter,
+        validator=v_optional(
+            instance_of(str)
+        )
+    )
+    position = attrib(
+        type=CrewRole,
+        converter=enum_converter(CrewRole),
+        validator=instance_of(CrewRole)
+    )
+    description = attrib(
+        type=str,
+        validator=instance_of(str)
+    )
+    photo = attrib(
+        type=Resource,
+        validator=instance_of(Resource)
+    )
+
+    @classmethod
+    def init_from_dict(cls, data: dict, **kwargs) -> "CrewMember":
+        return cls(
+            name=data["Name"],
+            surname=data["Surname"],
+            character=data["Character"].strip(),
+            position=data["Position"],
+            description=data["Description"],
+            photo=Resource(data["PhotoUrl"], **kwargs)
+        )
+
+
+@attrs(repr=True, slots=True, frozen=True, hash=True)
+class PlebisciteCandidate(ABCPlebisciteCandidate):
+    name = attrib(
+        type=str,
+        validator=instance_of(str)
+    )
+    category = attrib(
+        type=str,
+        validator=instance_of(str)
+    )
+    votes = attrib(
+        type=int | None,
+        validator=v_optional(
+            instance_of(int)
+        )
+    )
+    plebiscite = attrib(
+        type=str | None,
+        validator=v_optional(
+            instance_of(str)
+        )
+    )
+    voted = attrib(
+        type=bool | None,
+        validator=v_optional(
+            instance_of(bool)
+        )
+    )
+    _http = attrib(
+        type=ABCHTTPClient | None,
+        validator=v_optional(
+            instance_of(ABCHTTPClient)
+        ),
+        repr=False
+    )
+
+    @classmethod
+    def init_from_dict(cls, data: dict, **kwargs) -> "PlebisciteCandidate":
+        return cls(
+            name=data["Name"],
+            votes=data["Result"],
+            category=data["Category"],
+            plebiscite=data["Plebiscite"],
+            voted=data["WasVoted"],
+            **kwargs
+        )
+
+    async def vote(self, http: ABCHTTPClient | None):
+        if self.voted:
+            raise RevoteError(self.category)
+        async with http or self._http or HTTPClient() as client:
+            await client.patch_vote(self.category, self.name)
 
 
 GalleryPhoto = Gallery.Photo
 CampTransport = Camp.Transport
+Child = WebReservationModel.Child
