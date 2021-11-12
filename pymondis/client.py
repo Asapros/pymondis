@@ -1,12 +1,12 @@
-from typing import Iterable
+from typing import List
 
 from .abstract.api import ABCHTTPClient
 from .abstract.client import ABCClient
-from .abstract.models import ABCPlebisciteCandidate, ABCWebReservationModel, ABCCrewMember, ABCParentSurveyResult, \
-    ABCPurchaser, ABCGallery, ABCEventReservationSummary
+from .abstract.models import ABCWebReservationModel, ABCParentSurveyResult
+
 from .api import HTTPClient
 from .enums import Castle
-from .models import Camp
+from .models import Camp, CrewMember, Purchaser, Gallery, EventReservationSummary, PlebisciteCandidate
 
 
 class Client(ABCClient):
@@ -16,37 +16,38 @@ class Client(ABCClient):
             return
         self.http = http
 
-    async def get_camps(self) -> Iterable[Camp]:
+    async def get_camps(self) -> List[Camp]:
         camps = await self.http.get_camps()
         return [Camp.init_from_dict(camp) for camp in camps]
 
-    async def reserve_inauguration(self, reservation: ABCEventReservationSummary):
-        pass
+    async def reserve_inauguration(self, reservation: EventReservationSummary):
+        await self.http.post_inauguration(reservation.to_dict())
 
-    async def get_galleries(self, castle: Castle) -> Iterable[ABCGallery]:
-        pass
+    async def get_galleries(self, castle: Castle) -> List[Gallery]:
+        galleries = await self.http.get_galleries(castle.value)
+        return [Gallery.init_from_dict(gallery, http=self.http) for gallery in galleries]
 
-    async def order_fwb(self, purchaser: ABCPurchaser):
+    async def order_fwb(self, purchaser: Purchaser):
         await self.http.post_fwb(purchaser.to_dict())
 
     async def submit_survey(self, survey_hash: str, result: ABCParentSurveyResult):
-        pass
+        raise NotImplementedError()
 
-    async def get_crew(self) -> Iterable[ABCCrewMember]:
-        pass
+    async def get_crew(self) -> List[CrewMember]:
+        crew = await self.http.get_crew()
+        return [CrewMember.init_from_dict(crew_member, http=self.http) for crew_member in crew]
 
     async def apply_for_job(self):
         raise NotImplementedError()
         # @ .api.HTTPClient.post_apply
 
-    async def reserve_camp(self, reservation: ABCWebReservationModel) -> Iterable[str]:
-        pass
+    async def reserve_camp(self, reservation: ABCWebReservationModel) -> List[str]:
+        codes = await self.http.post_subscribe(reservation.to_dict())
+        return codes
 
-    async def vote_for_plebiscite(self, category: str, name: str):
-        pass
-
-    async def get_plebiscite(self, year: int) -> Iterable[ABCPlebisciteCandidate]:
-        pass
+    async def get_plebiscite(self, year: int) -> List[PlebisciteCandidate]:
+        candidates = await self.http.get_plebiscite(year)
+        return [PlebisciteCandidate.init_from_dict(candidate, http=self.http) for candidate in candidates]
 
     async def __aenter__(self) -> "Client":
         await self.http.__aenter__()
