@@ -11,21 +11,22 @@ Unofficial [Quatromondis](https://quatromondis.pl/) api
 - Fajnie obiekty z użyciem `attrs` (nawet `str()` działa!)
 - Ponawianie nieudanych zapytań z użyciem `backoff`
 - Abstrakcyjne podłoże każdej klasy pozwalające na jej własne implementacje
-- Epicka składnia pythona 3.10
-- Cache'owanie zdjęć
-- Type-hinty
+- Epicka składnia python-a 3.10
+- Cache-owanie zdjęć
+- Type-hint-y
 
 ## Co możesz zrobić
 - Dostać listę wszystkich aktualnych obozów
 - Dostać listę wszystkich aktualnych galerii
 - Dostać listę wszystkich psorów z opisami (bez biura i HY ...)
-- Dostać listę wszystkich kandydatów aktualnego plebiscytu (z opisami)
+- Dostać listę wszystkich kandydatów aktualnego plebiscytu
 - Zobaczyć wszystkie zdjęcia ze wszystkich galerii od początku istnienia fotorelacji!
 - Zagłosować w plebiscycie
-- Męczyć się debugowaniem przez 5h, bo zapomniałeś dać await
+- Męczyć się debugowaniem przez 5 godzin, bo zapomniałeś dać await ;)
 
 ## Co prawdopodobnie możesz zrobić
 - Zarezerwować miejsce w inauguracji
 - Zamówić książkę
 - Zarezerwować miejsce na obozie
-- Zarządzać rezerwacją obozu
+- ~~Dostać informacje o rezerwacji obozu~~
+- ~~Zgłosić się o pracę~~
