@@ -3,12 +3,12 @@ from datetime import datetime
 from typing import List, Iterable
 
 from .api import ABCHTTPClient
-from ..enums import Castle, CampLevel, World, Season, EventReservationOption
+from ..enums import Castle, CampLevel, World, Season, EventReservationOption, CrewRole, TShirtSize, SourcePoll
 
 
 # NOT IMPLEMENTED
 
-class ABCPlebisciteCandidate(ABC):
+class ABCReservationManageDetails(ABC):
     pass
 
 
@@ -16,15 +16,26 @@ class ABCParentSurveyResult(ABC):
     pass
 
 
-class ABCWebReservationModel(ABC):
-    pass
-
-
-class ABCCrewMember(ABC):
-    pass
-
-
 # IMPLEMENTED
+
+
+class ABCPlebisciteCandidate(ABC):
+    name: str
+    category: str
+    votes: int | None
+    plebiscite: str | None
+    voted: bool | None
+    _http: ABCHTTPClient | None
+
+    @classmethod
+    @abstractmethod
+    def init_from_dict(cls, data: dict, **kwargs) -> "ABCPlebisciteCandidate":
+        """Tworzy obiekt na podstawie dicta"""
+
+    @abstractmethod
+    async def vote(self, http: ABCHTTPClient | None):
+        """Głosuje na kandydata"""
+
 
 class ABCEventReservationSummary(ABC):
     price: int
@@ -52,6 +63,11 @@ class ABCCamp(ABC):
         one_way_price: int
         two_way_price: int
 
+        @classmethod
+        @abstractmethod
+        def init_from_dict(cls, data: dict) -> "ABCTransport":
+            """Tworzy obiekt na podstawie dicta"""
+
     camp_id: int
     code: str
     place: Castle
@@ -69,10 +85,56 @@ class ABCCamp(ABC):
     ages: List[str]  # Może jakieś range czy coś???
     transports: List[ABCTransport]
 
+    @classmethod
+    @abstractmethod
+    def init_from_dict(cls, data: dict, **kwargs) -> "ABCCamp":
+        """Tworzy obiekt na podstawie dicta"""
+
 
 class ABCPersonalReservationInfo(ABC):
     reservation_id: str
     surname: str
+    _http: ABCHTTPClient | None
+
+    @abstractmethod
+    def to_dict(self) -> dict:
+        """Zwraca dicta gotowego do wysłania"""
+
+    async def get_info(self, http: ABCHTTPClient | None) -> ABCReservationManageDetails:
+        """Zwraca informacje o rezerwacji"""
+
+
+class ABCWebReservationModel(ABC):
+    class ABCChild(ABC):
+        name: str
+        surname: str
+        t_shirt_size: TShirtSize
+        birthdate: datetime
+
+        @abstractmethod
+        def to_dict(self) -> dict:
+            """Zwraca dicta gotowego do wysłania"""
+
+    camp_id: int
+    child: ABCChild
+    parent_name: str
+    parent_surname: str
+    nip: str
+    email: str
+    phone: str
+    poll: SourcePoll
+    siblings: List[ABCChild]
+    promo_code: str | None
+    _http: ABCHTTPClient | None
+
+    @abstractmethod
+    def to_dict(self) -> dict:
+        """Zwraca dicta gotowego do wysłania"""
+
+    @property
+    @abstractmethod
+    def pri(self, **kwargs) -> ABCPersonalReservationInfo:
+        """Zwraca utworzone na podstawie modelu PersonalReservationInfo"""
 
 
 class ABCPurchaser(ABC):
@@ -100,7 +162,21 @@ class ABCResource(ABC):
             update_cache: bool = True,
             http: ABCHTTPClient | None = None
     ) -> bytes:
-        """Request a resource"""
+        """Zwraca resource w bajtach"""
+
+
+class ABCCrewMember(ABC):
+    name: str
+    surname: str
+    character: str
+    position: CrewRole
+    description: str
+    photo: ABCResource
+
+    @classmethod
+    @abstractmethod
+    def init_from_dict(cls, data: dict, **kwargs) -> "ABCCrewMember":
+        """Tworzy obiekt na podstawie dicta"""
 
 
 class ABCGallery(ABC):
@@ -108,19 +184,30 @@ class ABCGallery(ABC):
         normal: ABCResource
         large: ABCResource
 
+        @classmethod
+        @abstractmethod
+        def init_from_dict(cls, data: dict, **kwargs) -> "ABCPhoto":
+            """Tworzy obiekt na podstawie dicta"""
+
     gallery_id: int
-    start: datetime
-    end: datetime
-    name: str
-    empty: bool
-    _http: ABCHTTPClient
+    start: datetime | None
+    end: datetime | None
+    name: str | None
+    empty: bool | None
+    _http: ABCHTTPClient | None
 
     @abstractmethod
     async def get_photos(self, http: ABCHTTPClient | None = None) -> Iterable[ABCPhoto]:
-        """Request all photos in the gallery"""
+        """Zwraca wszystkie zdjęcia z galerii"""
+
+    @classmethod
+    @abstractmethod
+    def init_from_dict(cls, data: dict, **kwargs) -> "ABCGallery":
+        """Tworzy obiekt na podstawie dicta"""
 
 
 # MACROS
 
 ABCCampTransport = ABCCamp.ABCTransport
 ABCGalleryPhoto = ABCGallery.ABCPhoto
+ABCChild = ABCWebReservationModel.ABCChild
