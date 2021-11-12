@@ -654,8 +654,8 @@ class PlebisciteCandidate(ABCPlebisciteCandidate):
     async def vote(self, http: ABCHTTPClient | None):
         if self.voted:
             raise RevoteError(self.category)
-        async with http or self._http or HTTPClient() as client:
-            await client.patch_vote(self.category, self.name)
+        client = http or self._http or HTTPClient()
+        await client.patch_vote(self.category, self.name)
 
 
 GalleryPhoto = Gallery.Photo
