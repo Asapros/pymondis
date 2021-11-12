@@ -1,6 +1,6 @@
 from abc import abstractmethod, ABC
 from datetime import datetime
-from typing import Iterable, Tuple
+from typing import Iterable
 
 
 class ABCHTTPClient(ABC):
@@ -8,52 +8,55 @@ class ABCHTTPClient(ABC):
 
     @abstractmethod
     async def get_resource(self, url: str, cache_time: datetime | None = None, cache_content: bytes | None = None) -> bytes:
-        """Get the resource and resource's last modification timestamp"""
+        """Zwraca resource"""
 
     @abstractmethod
     async def get_camps(self) -> Iterable:
-        """Get all current camps"""
+        """Zwraca listę wszystkich dostępnych obozów"""
 
     @abstractmethod
     async def post_inauguration(self, reservation_model: dict):
-        """Reserve inauguration"""
+        """Rezerwuje miejsce na inauguracji"""
 
     @abstractmethod
     async def get_galleries(self, castle: str) -> Iterable:
-        """Get all current galleries from a castle"""
+        """Zwraca listę wszystkich aktualnych galerii"""
 
     @abstractmethod
     async def get_gallery(self, gallery_id: int) -> Iterable:
-        """Get a gallery by id"""
+        """Zwraca listę url-i do wszystkich zdjęć z galerii"""
 
     @abstractmethod
     async def post_fwb(self, purchaser: dict):
-        """Order a 'QUATROMONDIS – CZTERY ŚWIATY HUGONA YORCKA. OTWARCIE' book"""
+        """Zamawia książkę 'QUATROMONDIS – CZTERY ŚWIATY HUGONA YORCKA. OTWARCIE'"""
 
     @abstractmethod
     async def post_survey(self, survey_hash: str, result: dict):
-        """Post your opinion about a camp"""
+        """Chyba ankieta jakaś ale w sumie nie wiem nie znalazłem odpowiednika na stronie..."""
 
     @abstractmethod
     async def get_crew(self) -> Iterable:
-        """Get the whole crew"""
+        """
+        Zwraca listę wszystkich psorów
+        (bez biura i HY, oni są na stałe w stronę wbudowani, chyba nie planują żadnych zmian...)
+        """
 
     @abstractmethod
     async def post_apply(self):
-        """Apply for the job"""
+        """Zgłasza do pracy"""
 
     @abstractmethod
     async def post_subscribe(self, reservation_model: dict) -> Iterable:
-        """Reserve a camp"""
+        """Rezerwuje miejsce na obozie"""
 
     @abstractmethod
     async def post_manage(self, pri: dict) -> dict:
-        """Manage a reservation"""
+        """Zwraca dane rezerwacji"""
 
     @abstractmethod
     async def patch_vote(self, category: str, name: str):
-        """Vote for a legend/hero"""
+        """Głosuje na kandydata z aktualnego plebiscytu"""
 
     @abstractmethod
     async def get_plebiscite(self, year: int) -> Iterable:
-        """Get all candidates for the plebiscite"""
+        """Zwraca listę wszystkich kandydatów plebiscytu z danego roku"""
