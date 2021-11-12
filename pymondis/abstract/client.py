@@ -2,7 +2,16 @@ from abc import abstractmethod, ABC
 from typing import Iterable
 
 from .api import ABCHTTPClient
-from .models import ABCCrewMember, ABCWebReservationModel, ABCPlebisciteCandidate, ABCParentSurveyResult, ABCPurchaser, ABCGallery, ABCEventReservationSummary, ABCCamp
+from .models import (
+    ABCCrewMember,
+    ABCWebReservationModel,
+    ABCPlebisciteCandidate,
+    ABCParentSurveyResult,
+    ABCPurchaser,
+    ABCGallery,
+    ABCEventReservationSummary,
+    ABCCamp
+)
 from ..enums import Castle
 
 
@@ -15,11 +24,11 @@ class ABCClient(ABC):
 
     @abstractmethod
     async def reserve_inauguration(self, reservation: ABCEventReservationSummary) -> ABC:
-        """Rezerwuje inaugurację"""
+        """Rezerwuje miejsce inauguracji"""
 
     @abstractmethod
     async def get_galleries(self, castle: Castle) -> Iterable[ABCGallery]:
-        """Zwraca listę wszystkich galerii ze strony"""
+        """Zwraca listę wszystkich aktualnych galerii"""
 
     @abstractmethod
     async def order_fwb(self, purchaser: ABCPurchaser):
@@ -33,7 +42,7 @@ class ABCClient(ABC):
     async def get_crew(self) -> Iterable[ABCCrewMember]:
         """
         Zwraca listę wszystkich psorów
-        (bez biura i HY, oni są na stałę w strone wbudowani, chyba nie planują żadnych zmian xD)
+        (bez biura i HY, oni są na stałe w stronę wbudowani, chyba nie planują żadnych zmian xD)
         """
 
     @abstractmethod
@@ -41,13 +50,9 @@ class ABCClient(ABC):
         """Zgłasza do pracy"""
 
     @abstractmethod
-    async def reserve_camp(self, reservation: ABCWebReservationModel) -> Iterable[str]:  # Co to wgl zwraca???
-        """Rezerwuje obóz"""
-
-    @abstractmethod
-    async def vote_for_plebiscite(self, category: str, name: str):
-        """Głosuje na kandydata z aktualnego plebiscytu"""
+    async def reserve_camp(self, reservation: ABCWebReservationModel) -> Iterable[str]:
+        """Rezerwuje miejsce na obozie"""
 
     @abstractmethod
     async def get_plebiscite(self, year: int) -> Iterable[ABCPlebisciteCandidate]:
-        """Zwraca listę wszytkich kandydatów plebiscytu z danego roku"""
+        """Zwraca listę wszystkich kandydatów plebiscytu z danego roku"""
