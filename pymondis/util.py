@@ -15,10 +15,6 @@ default_backoff = on_exception(
 )
 
 
-def pascal2snake(string: str) -> str:
-    return ''.join(['_' + char.lower() if char.isupper() else char for char in string])[1:]
-
-
 def get_enum_element(enum: Type[Enum], value) -> Enum:
     for element in enum:
         if element.value == value:
@@ -26,11 +22,23 @@ def get_enum_element(enum: Type[Enum], value) -> Enum:
     else:
         raise NoEnumMatch(enum, value)
 
-def date_converter(string: str) -> datetime:
-    return datetime.strptime(string, "%Y-%m-%dT%H:%M:%S")
+
+def date_converter(value: str | datetime) -> datetime:
+    if isinstance(value, datetime):
+        return value
+    return datetime.strptime(value, "%Y-%m-%dT%H:%M:%S")
+
+
+def character_converter(string: str):
+    if string == "Nazwa postaci Quatromondis":
+        return None
+    return string
+
 
 def enum_converter(enum: Type[Enum]):
-    def inner_enum_converter(value) -> Enum:
+    def inner_enum_converter(value: str | Enum) -> Enum:
+        if isinstance(value, Enum):
+            return value
         return get_enum_element(enum, value)
 
     return inner_enum_converter
