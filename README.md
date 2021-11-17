@@ -38,5 +38,5 @@ pip install pymondis
 ```
 Aktualna wersja jak powyższe nie działa
 ```
-pip install git+https://https://github.com/Asapros/pymondis.git
+pip install git+https://github.com/Asapros/pymondis.git
 ```
