@@ -1,5 +1,5 @@
 # PYMONDIS
-Unofficial [Quatromondis](https://quatromondis.pl/) api
+Unofficial [Quatromondis](https://quatromondis.pl/) api wrapper
 
 ## CAUTION!
 1. The whole documentation is written in Polish
@@ -30,3 +30,13 @@ Unofficial [Quatromondis](https://quatromondis.pl/) api
 - Zarezerwować miejsce na obozie
 - ~~Dostać informacje o rezerwacji obozu~~
 - ~~Zgłosić się o pracę~~
+
+## Instalacja
+Aktualna wersja
+```
+pip install pymondis
+```
+Aktualna wersja jak powyższe nie działa
+```
+pip install git+https://https://github.com/Asapros/pymondis.git
+```
