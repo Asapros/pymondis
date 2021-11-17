@@ -208,6 +208,6 @@ class ABCGallery(ABC):
 
 # MACROS
 
-ABCCampTransport = ABCCamp.ABCTransport
-ABCGalleryPhoto = ABCGallery.ABCPhoto
+ABCTransport = ABCCamp.ABCTransport
+ABCPhoto = ABCGallery.ABCPhoto
 ABCChild = ABCWebReservationModel.ABCChild
