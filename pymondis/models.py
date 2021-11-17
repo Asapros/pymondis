@@ -5,14 +5,14 @@ from attr import attrib, attrs
 from attr.validators import instance_of, optional as v_optional, deep_iterable
 from attr.converters import optional as c_optional
 
-from exceptions import RevoteError
+from .exceptions import RevoteError
 from .abstract.api import ABCHTTPClient
 from .abstract.models import (
     ABCResource,
     ABCGallery,
-    ABCGalleryPhoto,
+    ABCPhoto,
     ABCCamp,
-    ABCCampTransport,
+    ABCTransport,
     ABCPurchaser,
     ABCPersonalReservationInfo,
     ABCEventReservationSummary,
@@ -59,8 +59,8 @@ class Resource(ABCResource):
 
     async def get(self, use_cache: bool = True, update_cache: bool = True, http: ABCHTTPClient | None = None) -> bytes:
         arguments = self._cache_time, self._cache_content if use_cache else ()
-        async with http or self._http or HTTPClient() as client:
-            content = await client.get_resource(self.url, *arguments)
+        client = http or self._http
+        content = await client.get_resource(self.url, *arguments)
         if update_cache:
             self._cache_time = datetime.now()
             self._cache_content = content
@@ -73,7 +73,7 @@ class Resource(ABCResource):
 @attrs(repr=True, slots=True, frozen=True, hash=True)
 class Gallery(ABCGallery):
     @attrs(repr=True, slots=True, frozen=True, hash=True)
-    class Photo(ABCGalleryPhoto):
+    class Photo(ABCPhoto):
         normal = attrib(
             type=ABCResource,
             validator=instance_of(ABCResource)
@@ -160,7 +160,7 @@ class Gallery(ABCGallery):
 @attrs(repr=True, slots=True, frozen=True, hash=True)
 class Camp(ABCCamp):
     @attrs(repr=True, slots=True, frozen=True, hash=True)
-    class Transport(ABCCampTransport):
+    class Transport(ABCTransport):
         city = attrib(
             type=str,
             validator=instance_of(str)
@@ -255,9 +255,9 @@ class Camp(ABCCamp):
         )
     )
     transports = attrib(
-        type=List[ABCCampTransport],
+        type=List[ABCTransport],
         validator=deep_iterable(
-            instance_of(ABCCampTransport)
+            instance_of(ABCTransport)
         )
     )
 
@@ -343,7 +343,10 @@ class PersonalReservationInfo(ABCPersonalReservationInfo):
         }
 
     async def get_info(self, http: ABCHTTPClient | None) -> ABCReservationManageDetails:
-        raise NotImplementedError()
+        raise NotImplementedError(
+            "Żeby używać tej metody fajnie by było gdyby ABCReservationManageDetails było zaimplementowane..."
+            "Jeśli jest ci potrzebna możesz otworzyć nowy issue: https://github.com/Asapros/pymondis/issues"
+        )
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
@@ -636,7 +639,7 @@ class PlebisciteCandidate(ABCPlebisciteCandidate):
         validator=v_optional(
             instance_of(ABCHTTPClient)
         ),
-        default = None,
+        default=None,
         repr=False
     )
 
@@ -651,13 +654,13 @@ class PlebisciteCandidate(ABCPlebisciteCandidate):
             **kwargs
         )
 
-    async def vote(self, http: ABCHTTPClient | None):
+    async def vote(self, http: ABCHTTPClient | None = None):
         if self.voted:
             raise RevoteError(self.category)
         client = http or self._http or HTTPClient()
         await client.patch_vote(self.category, self.name)
 
 
-GalleryPhoto = Gallery.Photo
-CampTransport = Camp.Transport
+Photo = Gallery.Photo
+Transport = Camp.Transport
 Child = WebReservationModel.Child
