@@ -31,15 +31,17 @@ class Client(ABCClient):
         await self.http.post_fwb(purchaser.to_dict())
 
     async def submit_survey(self, survey_hash: str, result: ABCParentSurveyResult):
-        raise NotImplementedError()
+        raise NotImplementedError(
+            "Żeby używać tej metody fajnie by było gdybym wiedział jakie dane są przesyłane"
+            "Jeśli jest ci potrzebna możesz otworzyć nowy issue: https://github.com/Asapros/pymondis/issues"
+        )
 
     async def get_crew(self) -> List[CrewMember]:
         crew = await self.http.get_crew()
         return [CrewMember.init_from_dict(crew_member, http=self.http) for crew_member in crew]
 
     async def apply_for_job(self):
-        raise NotImplementedError()
-        # @ .api.HTTPClient.post_apply
+        await self.http.post_apply()
 
     async def reserve_camp(self, reservation: ABCWebReservationModel) -> List[str]:
         codes = await self.http.post_subscribe(reservation.to_dict())
