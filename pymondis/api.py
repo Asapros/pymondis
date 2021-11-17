@@ -62,9 +62,12 @@ class HTTPClient(ABCHTTPClient, AsyncClient):
 
     @default_backoff
     async def post_apply(self):
-        raise NotImplementedError()  # TODO Zaimplementuj
-        # Dane najprawdopodobnie są wysyłane jako form, ale nie ma tego w swaggerze, a ja jestem borowikiem w javascripta i nie czaje o co chodzi
-        # Dodajcie do dokumentacji pls
+        raise NotImplementedError(
+            "Żeby używać tej metody fajnie by było gdybym wiedział jak dokładnie są przesyłane dane"
+            "Jeśli jest ci potrzebna możesz otworzyć nowy issue: https://github.com/Asapros/pymondis/issues"
+        )
+        # Dane najprawdopodobniej są wysyłane jako form, ale nie ma tego w swagger-ze, a ja jestem borowikiem w
+        # javascript-a i nie czaje o co chodzi, dodajcie do dokumentacji pls
 
     @default_backoff
     async def post_subscribe(self, reservation_model: dict) -> List[str]:
