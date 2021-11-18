@@ -138,7 +138,7 @@ class Gallery(ABCGallery):
     )
 
     async def get_photos(self, http: ABCHTTPClient | None = None) -> List[Photo]:
-        client = http or self._http or HTTPClient()
+        client = http or self._http
         photos = await client.get_gallery(self.gallery_id)
         return [
             self.Photo.init_from_dict(photo, http=client)
@@ -657,7 +657,7 @@ class PlebisciteCandidate(ABCPlebisciteCandidate):
     async def vote(self, http: ABCHTTPClient | None = None):
         if self.voted:
             raise RevoteError(self.category)
-        client = http or self._http or HTTPClient()
+        client = http or self._http
         await client.patch_vote(self.category, self.name)
 
 
