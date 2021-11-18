@@ -1,7 +1,7 @@
 from setuptools import setup
 
 
-with open("README.md", "r") as readme_file:
+with open("README.md", encoding="utf-8") as readme_file:
     README = readme_file.read()
 
 with open("requirements.txt", "r") as requirements_file:
@@ -14,7 +14,7 @@ setup(
         "Tracker": "https://github.com/Asapros/pymondis/issues",
         "Source": "https://github.com/Asapros/pymondis"
     },
-    version="1.0.0.a2",
+    version="1.0.0.a4",
     packages=("pymondis", "pymondis.abstract"),
     license="MIT",
     author="Asapros",
