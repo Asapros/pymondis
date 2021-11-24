@@ -15,7 +15,7 @@ setup(
         "Source": "https://github.com/Asapros/pymondis"
     },
     version="1.0.0.a4",
-    packages=("pymondis", "pymondis.abstract"),
+    packages=("pymondis",),
     license="MIT",
     author="Asapros",
     description="Unofficial Quatromondis API wrapper",

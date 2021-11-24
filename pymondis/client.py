@@ -1,16 +1,22 @@
 from typing import List
 
-from .abstract.api import ABCHTTPClient
-from .abstract.client import ABCClient
-from .abstract.models import ABCWebReservationModel, ABCParentSurveyResult
 
 from .api import HTTPClient
 from .enums import Castle
-from .models import Camp, CrewMember, Purchaser, Gallery, EventReservationSummary, PlebisciteCandidate
+from .models import (
+    Camp,
+    CrewMember,
+    Purchaser,
+    Gallery,
+    EventReservationSummary,
+    PlebisciteCandidate,
+    WebReservationModel,
+    ParentSurveyResult
+)
 
 
-class Client(ABCClient):
-    def __init__(self, http: ABCHTTPClient = None):
+class Client:
+    def __init__(self, http: HTTPClient = None):
         if http is None:
             self.http = HTTPClient()
             return
@@ -30,7 +36,7 @@ class Client(ABCClient):
     async def order_fwb(self, purchaser: Purchaser):
         await self.http.post_fwb(purchaser.to_dict())
 
-    async def submit_survey(self, survey_hash: str, result: ABCParentSurveyResult):
+    async def submit_survey(self, survey_hash: str, result: ParentSurveyResult):
         raise NotImplementedError(
             "Żeby używać tej metody fajnie by było gdybym wiedział jakie dane są przesyłane"
             "Jeśli jest ci potrzebna możesz otworzyć nowy issue: https://github.com/Asapros/pymondis/issues"
@@ -43,7 +49,7 @@ class Client(ABCClient):
     async def apply_for_job(self):
         await self.http.post_apply()
 
-    async def reserve_camp(self, reservation: ABCWebReservationModel) -> List[str]:
+    async def reserve_camp(self, reservation: WebReservationModel) -> List[str]:
         codes = await self.http.post_subscribe(reservation.to_dict())
         return codes
 

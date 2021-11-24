@@ -3,12 +3,11 @@ from typing import List, Dict
 
 from httpx import AsyncClient
 
-from pymondis.abstract.models import ABCHTTPClient
 
 from pymondis.util import default_backoff
 
 
-class HTTPClient(ABCHTTPClient, AsyncClient):
+class HTTPClient(AsyncClient):
     BASE_URL: str = "https://quatromondisapi.azurewebsites.net/api"
     TIMEOUT: int | None = None
 

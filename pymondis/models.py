@@ -6,38 +6,29 @@ from attr.validators import instance_of, optional as v_optional, deep_iterable
 from attr.converters import optional as c_optional
 
 from .exceptions import RevoteError
-from .abstract.api import ABCHTTPClient
-from .abstract.models import (
-    ABCResource,
-    ABCGallery,
-    ABCPhoto,
-    ABCCamp,
-    ABCTransport,
-    ABCPurchaser,
-    ABCPersonalReservationInfo,
-    ABCEventReservationSummary,
-    ABCCrewMember,
-    ABCPlebisciteCandidate,
-    ABCWebReservationModel,
-    ABCChild,
-    ABCReservationManageDetails
-)
+
 from .api import HTTPClient
 from .enums import Castle, CampLevel, World, Season, EventReservationOption, CrewRole, TShirtSize, SourcePoll
 from .util import enum_converter, date_converter, character_converter
 
 
-@attrs(repr=True, slots=True)
-class Resource(ABCResource):
+class ParentSurveyResult:
+    pass
+
+class ReservationManageDetails:
+    pass
+
+@attrs(repr=True, slots=True, eq=False)
+class Resource:
     url = attrib(
         type=str,
         validator=instance_of(str)
     )
     _http = attrib(
-        type=ABCHTTPClient | None,
+        type=HTTPClient | None,
         default=None,
         validator=v_optional(
-            instance_of(ABCHTTPClient)
+            instance_of(HTTPClient)
         ),
         repr=False
     )
@@ -57,7 +48,7 @@ class Resource(ABCResource):
         repr=False
     )
 
-    async def get(self, use_cache: bool = True, update_cache: bool = True, http: ABCHTTPClient | None = None) -> bytes:
+    async def get(self, use_cache: bool = True, update_cache: bool = True, http: HTTPClient | None = None) -> bytes:
         arguments = self._cache_time, self._cache_content if use_cache else ()
         client = http or self._http
         content = await client.get_resource(self.url, *arguments)
@@ -71,16 +62,16 @@ class Resource(ABCResource):
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
-class Gallery(ABCGallery):
+class Gallery:
     @attrs(repr=True, slots=True, frozen=True, hash=True)
-    class Photo(ABCPhoto):
+    class Photo:
         normal = attrib(
-            type=ABCResource,
-            validator=instance_of(ABCResource)
+            type=Resource,
+            validator=instance_of(Resource)
         )
         large = attrib(
-            type=ABCResource,
-            validator=instance_of(ABCResource)
+            type=Resource,
+            validator=instance_of(Resource)
         )
 
         @classmethod
@@ -129,15 +120,15 @@ class Gallery(ABCGallery):
         default=None
     )
     _http = attrib(
-        type=ABCHTTPClient | None,
+        type=HTTPClient | None,
         validator=v_optional(
-            instance_of(ABCHTTPClient),
+            instance_of(HTTPClient),
         ),
         default=None,
         repr=False
     )
 
-    async def get_photos(self, http: ABCHTTPClient | None = None) -> List[Photo]:
+    async def get_photos(self, http: HTTPClient | None = None) -> List[Photo]:
         client = http or self._http
         photos = await client.get_gallery(self.gallery_id)
         return [
@@ -158,9 +149,9 @@ class Gallery(ABCGallery):
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
-class Camp(ABCCamp):
+class Camp:
     @attrs(repr=True, slots=True, frozen=True, hash=True)
-    class Transport(ABCTransport):
+    class Transport:
         city = attrib(
             type=str,
             validator=instance_of(str)
@@ -255,9 +246,9 @@ class Camp(ABCCamp):
         )
     )
     transports = attrib(
-        type=List[ABCTransport],
+        type=List[Transport],
         validator=deep_iterable(
-            instance_of(ABCTransport)
+            instance_of(Transport)
         )
     )
 
@@ -287,7 +278,7 @@ class Camp(ABCCamp):
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
-class Purchaser(ABCPurchaser):
+class Purchaser:
     name = attrib(
         type=str,
         validator=instance_of(str)
@@ -320,7 +311,7 @@ class Purchaser(ABCPurchaser):
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
-class PersonalReservationInfo(ABCPersonalReservationInfo):
+class PersonalReservationInfo:
     reservation_id = attrib(
         type=str,
         validator=instance_of(str)
@@ -330,8 +321,8 @@ class PersonalReservationInfo(ABCPersonalReservationInfo):
         validator=instance_of(str)
     )
     _http = attrib(
-        type=ABCHTTPClient | None,
-        validator=instance_of(ABCHTTPClient),
+        type=HTTPClient | None,
+        validator=instance_of(HTTPClient),
         default=None,
         repr=False
     )
@@ -342,7 +333,7 @@ class PersonalReservationInfo(ABCPersonalReservationInfo):
             "Surname": self.surname
         }
 
-    async def get_info(self, http: ABCHTTPClient | None) -> ABCReservationManageDetails:
+    async def get_info(self, http: HTTPClient | None) -> ReservationManageDetails:
         raise NotImplementedError(
             "Żeby używać tej metody fajnie by było gdyby ABCReservationManageDetails było zaimplementowane..."
             "Jeśli jest ci potrzebna możesz otworzyć nowy issue: https://github.com/Asapros/pymondis/issues"
@@ -350,8 +341,8 @@ class PersonalReservationInfo(ABCPersonalReservationInfo):
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
-class WebReservationModel(ABCWebReservationModel):
-    class Child(ABCChild):
+class WebReservationModel:
+    class Child:
         name = attrib(
             type=str,
             validator=instance_of(str)
@@ -385,7 +376,7 @@ class WebReservationModel(ABCWebReservationModel):
     )
     child = attrib(
         type=Child,
-        validator=instance_of(ABCChild)
+        validator=instance_of(Child)
     )
     parent_name = attrib(
         type=str,
@@ -413,9 +404,9 @@ class WebReservationModel(ABCWebReservationModel):
         validator=instance_of(SourcePoll)
     )
     siblings = attrib(
-        type=List[ABCChild],
+        type=List[Child],
         validator=deep_iterable(
-            instance_of(ABCChild)
+            instance_of(Child)
         ),
         factory=list
     )
@@ -427,9 +418,9 @@ class WebReservationModel(ABCWebReservationModel):
         default=None
     )
     _http = attrib(
-        type=ABCHTTPClient | None,
+        type=HTTPClient | None,
         validator=v_optional(
-            instance_of(ABCHTTPClient)
+            instance_of(HTTPClient)
         ),
         default=None,
         repr=False
@@ -462,7 +453,7 @@ class WebReservationModel(ABCWebReservationModel):
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
-class EventReservationSummary(ABCEventReservationSummary):
+class EventReservationSummary:
     option = attrib(
         type=EventReservationOption,
         converter=enum_converter(EventReservationOption),
@@ -561,7 +552,7 @@ class EventReservationSummary(ABCEventReservationSummary):
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
-class CrewMember(ABCCrewMember):
+class CrewMember:
     name = attrib(
         type=str,
         validator=instance_of(str)
@@ -604,7 +595,7 @@ class CrewMember(ABCCrewMember):
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
-class PlebisciteCandidate(ABCPlebisciteCandidate):
+class PlebisciteCandidate:
     name = attrib(
         type=str,
         validator=instance_of(str)
@@ -635,9 +626,9 @@ class PlebisciteCandidate(ABCPlebisciteCandidate):
         default=None
     )
     _http = attrib(
-        type=ABCHTTPClient | None,
+        type=HTTPClient | None,
         validator=v_optional(
-            instance_of(ABCHTTPClient)
+            instance_of(HTTPClient)
         ),
         default=None,
         repr=False
@@ -654,7 +645,7 @@ class PlebisciteCandidate(ABCPlebisciteCandidate):
             **kwargs
         )
 
-    async def vote(self, http: ABCHTTPClient | None = None):
+    async def vote(self, http: HTTPClient | None = None):
         if self.voted:
             raise RevoteError(self.category)
         client = http or self._http

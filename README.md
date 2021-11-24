@@ -10,7 +10,6 @@ Unofficial [Quatromondis](https://quatromondis.pl/) api wrapper
 - Wszystkie zapytania są asynchroniczne z użyciem `httpx`
 - Fajnie obiekty z użyciem `attrs` (nawet `str()` działa!)
 - Ponawianie nieudanych zapytań z użyciem `backoff`
-- Abstrakcyjne podłoże każdej klasy pozwalające na jej własne implementacje
 - Epicka składnia python-a 3.10
 - Cache-owanie zdjęć
 - Type-hint-y

@@ -5,7 +5,7 @@ from unittest import IsolatedAsyncioTestCase
 
 class TestHTTPClient(IsolatedAsyncioTestCase):
     async def test_imports(self):
-        from pymondis import api, client, enums, exceptions, models, util, abstract
+        from pymondis import api, client, enums, exceptions, models, util
 
     async def test_gets(self):
         from pymondis.client import Client
@@ -18,7 +18,7 @@ class TestHTTPClient(IsolatedAsyncioTestCase):
     async def test_plebiscite(self):
         from pymondis.client import Client
         async with Client() as client:
-            await gather(*[client.get_plebiscite(year) for year in range(2019, datetime.now().year + 1)])
+            await client.get_plebiscite(datetime.now().year)
 
     async def test_galleries(self):
         from pymondis.enums import Castle
@@ -31,7 +31,7 @@ class TestHTTPClient(IsolatedAsyncioTestCase):
         from pymondis.client import Client
         async with Client() as client:
             gallery = Gallery(1)
-            photos = await gallery.get_photos(client.http)
+            await gallery.get_photos(client.http)
 
 
 if __name__ == "__main__":
