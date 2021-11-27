@@ -5,7 +5,7 @@ from typing import Type
 from backoff import on_exception, expo
 from httpx import HTTPStatusError
 
-from pymondis.exceptions import NoEnumMatch
+from pymondis.exceptions import NoEnumMatchError
 
 default_backoff = on_exception(
     expo,
@@ -21,7 +21,7 @@ def get_enum_element(enum: Type[Enum], value: str) -> Enum:
         if element.value == value:
             return element
     else:
-        raise NoEnumMatch(enum, value)
+        raise NoEnumMatchError(enum, value)
 
 
 def date_converter(value: str | datetime) -> datetime:
