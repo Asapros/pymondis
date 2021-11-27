@@ -26,23 +26,25 @@ def get_enum_element(enum: Type[Enum], value: str) -> Enum:
 
 def date_converter(value: str | datetime) -> datetime:
     """Zamienia string-a na datetime"""
-    if isinstance(value, datetime):
-        return value
-    return datetime.strptime(value, "%Y-%m-%dT%H:%M:%S")
+    return value if isinstance(value, datetime) else datetime.strptime(value, "%Y-%m-%dT%H:%M:%S")
 
 
-def character_converter(string: str):
+def character_converter(string: str) -> str | None:
     """
     Zamienia 'Nazwa postaci Quatromondis' na None,
     bo ktoś stwierdził że taka będzie wartość jak ktoś nie ma nazwy...
     """
-    if string == "Nazwa postaci Quatromondis":
-        return None
-    return string
+    return None if string == "Nazwa postaci Quatromondis" else string
+
+
+def empty_string_converter(string: str) -> str | None:
+    """Zamienia pustego string-a na None"""
+    return string if string else None
 
 
 def enum_converter(enum: Type[Enum]):
     """Wrapper get_enum_element"""
+
     def inner_enum_converter(value: str | Enum) -> Enum:
         if isinstance(value, Enum):
             return value

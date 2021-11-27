@@ -10,7 +10,7 @@ from .exceptions import RevoteError, NotFullyImplementedWarning
 
 from .api import HTTPClient
 from .enums import Castle, CampLevel, World, Season, EventReservationOption, CrewRole, TShirtSize, SourcePoll
-from .util import enum_converter, date_converter, character_converter
+from .util import enum_converter, date_converter, character_converter, empty_string_converter
 
 
 class ParentSurveyResult:
@@ -228,6 +228,7 @@ class Camp:
     )
     trip = attrib(
         type=str | None,
+        converter=empty_string_converter,
         validator=v_optional(
             instance_of(str)
         )
