@@ -1,11 +1,12 @@
 from datetime import datetime
 from typing import List
+from warnings import warn
 
 from attr import attrib, attrs
 from attr.validators import instance_of, optional as v_optional, deep_iterable
 from attr.converters import optional as c_optional
 
-from .exceptions import RevoteError
+from .exceptions import RevoteError, NotFullyImplementedWarning
 
 from .api import HTTPClient
 from .enums import Castle, CampLevel, World, Season, EventReservationOption, CrewRole, TShirtSize, SourcePoll
@@ -15,8 +16,10 @@ from .util import enum_converter, date_converter, character_converter
 class ParentSurveyResult:
     pass
 
+
 class ReservationManageDetails:
     pass
+
 
 @attrs(repr=True, slots=True, eq=False)
 class Resource:
@@ -130,7 +133,7 @@ class Gallery:
 
     async def get_photos(self, http: HTTPClient | None = None) -> List[Photo]:
         client = http or self._http
-        photos = await client.get_gallery(self.gallery_id)
+        photos = await client.get_images_galleries(self.gallery_id)
         return [
             self.Photo.init_from_dict(photo, http=client)
             for photo in photos
@@ -333,11 +336,15 @@ class PersonalReservationInfo:
             "Surname": self.surname
         }
 
-    async def get_info(self, http: HTTPClient | None) -> ReservationManageDetails:
-        raise NotImplementedError(
-            "Żeby używać tej metody fajnie by było gdyby ABCReservationManageDetails było zaimplementowane..."
-            "Jeśli jest ci potrzebna możesz otworzyć nowy issue: https://github.com/Asapros/pymondis/issues"
+    async def get_details(self, http: HTTPClient | None) -> ReservationManageDetails | dict:
+        warn(
+            "Ta metoda będzie w przyszłości zwracała ReservationMangeDetails."
+            "Jeśli chcesz pomóc w jej implementacji otwórz nowy issue: https://github.com/Asapros/pymondis/issues",
+            NotFullyImplementedWarning
         )
+        client = http or self._http
+        details = await client.post_reservations_manage(self.to_dict())
+        return details
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
