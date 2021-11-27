@@ -13,10 +13,12 @@ from .enums import Castle, CampLevel, World, Season, EventReservationOption, Cre
 from .util import enum_converter, date_converter, character_converter, empty_string_converter
 
 
+@attrs(repr=True, slots=True, frozen=True, hash=True)
 class ParentSurveyResult:
     pass
 
 
+@attrs(repr=True, slots=True, frozen=True, hash=True)
 class ReservationManageDetails:
     pass
 
