@@ -1,5 +1,5 @@
 from setuptools import setup
-from .pymondis import __version__, __license__, __description__, __title__, __author__
+from pymondis import __version__, __license__, __description__, __title__, __author__
 
 with open("README.md", encoding="utf-8") as readme_file:
     README = readme_file.read()
