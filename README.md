@@ -31,11 +31,11 @@ Unofficial [Quatromondis](https://quatromondis.pl/) api wrapper
 - ~~Zgłosić się o pracę~~
 
 ## Instalacja
-Aktualna wersja
+Aktualna *chyba* działająca wersja
 ```
 pip install pymondis
 ```
-Aktualna wersja jak powyższe nie działa
+Aktualna wersja
 ```
 pip install git+https://github.com/Asapros/pymondis.git
 ```
