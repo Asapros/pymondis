@@ -6,7 +6,7 @@ from asyncio import run
 from datetime import datetime
 from random import choice
 
-from pymondis.client import Client
+from pymondis import Client
 
 
 async def main():

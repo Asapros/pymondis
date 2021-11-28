@@ -7,7 +7,7 @@ from string import ascii_lowercase
 from random import choice
 from io import BytesIO
 
-from pymondis.client import Client
+from pymondis import Client
 from pymondis.enums import CrewRole
 from PIL import Image  # pip install pillow
 
