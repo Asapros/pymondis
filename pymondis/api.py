@@ -3,8 +3,8 @@ from typing import List, Dict
 
 from httpx import AsyncClient
 
-from pymondis.util import default_backoff
-
+from .util import default_backoff
+from ._metadata import __version__, __title__
 
 class HTTPClient(AsyncClient):
     def __init__(
@@ -15,6 +15,7 @@ class HTTPClient(AsyncClient):
     ):
         super().__init__(timeout=timeout)
         self.base: str = base_url
+        self.headers = {"User-Agent": "{}/{}".format(__title__, __version__)}
 
     @default_backoff
     async def get_resource(

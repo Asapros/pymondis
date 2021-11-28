@@ -1,5 +1,5 @@
 from setuptools import setup
-
+from .pymondis import __version__, __license__, __description__, __title__, __author__
 
 with open("README.md", encoding="utf-8") as readme_file:
     README = readme_file.read()
@@ -8,17 +8,17 @@ with open("requirements.txt", "r") as requirements_file:
     REQUIREMENTS = requirements_file.read().splitlines()
 
 setup(
-    name="pymondis",
+    name=__title__,
     url="https://github.com/Asapros/pymondis",
     project_urls={
         "Tracker": "https://github.com/Asapros/pymondis/issues",
         "Source": "https://github.com/Asapros/pymondis"
     },
-    version="1.0.0.a4",
+    version=__version__,
     packages=("pymondis",),
-    license="MIT",
-    author="Asapros",
-    description="Unofficial Quatromondis API wrapper",
+    license=__license__,
+    author=__author__,
+    description=__description__,
     long_description=README,
     long_description_content_type="text/markdown",
     install_requires=REQUIREMENTS,
