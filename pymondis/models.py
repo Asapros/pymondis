@@ -54,7 +54,8 @@ class Resource:
     )
 
     async def get(self, use_cache: bool = True, update_cache: bool = True, http: HTTPClient | None = None) -> bytes:
-        arguments = self._cache_time, self._cache_content if use_cache else ()
+        # Spoiler - Lock-i działają wolniej w tym przypadku...
+        arguments = (self._cache_time, self._cache_content) if use_cache else ()
         client = http or self._http
         content = await client.get_resource(self.url, *arguments)
         if update_cache:
