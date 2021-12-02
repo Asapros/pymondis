@@ -22,7 +22,7 @@ async def main():
         candidate = choice(not_voted)
         print("Wylosowano: {} ({} głosów, kategoria {})".format(
             candidate.name,
-            candidate.votes,
+            "[UKRYTE]" if candidate.votes is None else candidate.votes,
             candidate.category
         ))
         input("Naciśnij enter żeby zagłosować...")
