@@ -5,8 +5,7 @@ Pokazuje listę master-skich obozów od najmniejszej ceny
 
 from asyncio import run
 
-from pymondis import Client
-from pymondis.enums import CampLevel
+from pymondis import Client, CampLevel
 
 
 async def main():

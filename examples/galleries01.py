@@ -6,8 +6,7 @@ from asyncio import run
 from random import choice
 from io import BytesIO
 
-from pymondis import Client
-from pymondis.enums import Castle
+from pymondis import Client, Castle
 from PIL import Image  # pip install pillow
 
 

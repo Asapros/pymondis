@@ -15,7 +15,7 @@ async def main():
         candidates = await client.get_plebiscite(current_year)  # Pobiera kandydatów tegorocznego plebiscytu
         not_voted = list(
             filter(lambda candidate: not candidate.voted, candidates)
-        )  # Filtruje kandydatów kategorii na którą już dzisiaj głosowałeś
+        )  # Filtruje kandydatów kategorii, na którą już dzisiaj głosowałeś
         if not not_voted:  # Lista jest pusta
             print("Zagłosowałeś już dzisiaj we wszystkich kategoriach!")
             return
@@ -25,6 +25,7 @@ async def main():
             candidate.votes,
             candidate.category
         ))
+        input("Naciśnij enter żeby zagłosować...")
         await candidate.vote()  # Głosuje na niego
 
 
