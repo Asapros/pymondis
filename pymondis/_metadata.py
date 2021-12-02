@@ -1,5 +1,5 @@
 __title__ = "pymondis"
 __version__ = "1.0.0.a7"
-__description__ = "Unofficial Quatromondis API wrapper"
+__description__ = "Nieoficjalny wrapper Quatromondis API"
 __author__ = "Asapros"
 __license__ = "MIT"
