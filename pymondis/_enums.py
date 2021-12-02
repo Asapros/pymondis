@@ -33,7 +33,8 @@ class World(Enum):
     RECRUITS = "Recruits"
     SANGUINS = "Sanguins"
 
-    VARIOUS = "Various"  # Okazjonalne (miejmy nadzieje) tematyczne turnusy - aktualnie "Smocza Straż", "Sekret Zamkowej Krypty", "Księżniczki i Rycerze" XDDDDD
+    VARIOUS = "Various"  # Okazjonalne (miejmy nadzieje) tematyczne turnusy -
+    # Aktualnie "Smocza Straż", "Sekret Zamkowej Krypty", "Księżniczki i Rycerze" XDDDDD
     ALL = "All"
 
 

@@ -6,11 +6,10 @@ from attr import attrib, attrs
 from attr.validators import instance_of, optional as v_optional, deep_iterable
 from attr.converters import optional as c_optional
 
-from .exceptions import RevoteError, NotFullyImplementedWarning
-
-from .api import HTTPClient
-from .enums import Castle, CampLevel, World, Season, EventReservationOption, CrewRole, TShirtSize, SourcePoll
-from .util import enum_converter, date_converter, character_converter, empty_string_converter
+from ._exceptions import RevoteError, NotFullyImplementedWarning
+from ._api import HTTPClient
+from ._enums import Castle, CampLevel, World, Season, EventReservationOption, CrewRole, TShirtSize, SourcePoll
+from ._util import convert_enum, convert_date, convert_character, convert_empty_string
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
@@ -94,7 +93,7 @@ class Gallery:
     start = attrib(
         type=datetime | None,
         converter=c_optional(
-            date_converter
+            convert_date
         ),
         validator=v_optional(
             instance_of(datetime)
@@ -104,7 +103,7 @@ class Gallery:
     end = attrib(
         type=datetime | None,
         converter=c_optional(
-            date_converter
+            convert_date
         ),
         validator=v_optional(
             instance_of(datetime)
@@ -189,7 +188,7 @@ class Camp:
     )
     place = attrib(
         type=Castle,
-        converter=enum_converter(Castle),
+        converter=convert_enum(Castle),
         validator=instance_of(Castle)
     )
     price = attrib(
@@ -216,34 +215,34 @@ class Camp:
     )
     level = attrib(
         type=CampLevel,
-        converter=enum_converter(CampLevel),
+        converter=convert_enum(CampLevel),
         validator=instance_of(CampLevel)
     )
     world = attrib(
         type=World,
-        converter=enum_converter(World),
+        converter=convert_enum(World),
         validator=instance_of(World)
     )
     season = attrib(
         type=Season,
-        converter=enum_converter(Season),
+        converter=convert_enum(Season),
         validator=instance_of(Season)
     )
     trip = attrib(
         type=str | None,
-        converter=empty_string_converter,
+        converter=convert_empty_string,
         validator=v_optional(
             instance_of(str)
         )
     )
     start = attrib(
         type=datetime,
-        converter=lambda value: value if isinstance(value, datetime) else date_converter(value),
+        converter=lambda value: value if isinstance(value, datetime) else convert_date(value),
         validator=instance_of(datetime)
     )
     end = attrib(
         type=datetime,
-        converter=lambda value: value if isinstance(value, datetime) else date_converter(value),
+        converter=lambda value: value if isinstance(value, datetime) else convert_date(value),
         validator=instance_of(datetime)
     )
     ages = attrib(
@@ -364,12 +363,12 @@ class WebReservationModel:
         )
         t_shirt_size = attrib(
             type=TShirtSize,
-            converter=enum_converter(TShirtSize),
+            converter=convert_enum(TShirtSize),
             validator=instance_of(TShirtSize)
         )
         birthdate = attrib(
             type=datetime,
-            converter=date_converter,
+            converter=convert_date,
             validator=instance_of(datetime)
         )
 
@@ -411,7 +410,7 @@ class WebReservationModel:
     )
     poll = attrib(
         type=SourcePoll,
-        converter=enum_converter(SourcePoll),
+        converter=convert_enum(SourcePoll),
         validator=instance_of(SourcePoll)
     )
     siblings = attrib(
@@ -459,15 +458,14 @@ class WebReservationModel:
 
     @property
     def pri(self, **kwargs) -> PersonalReservationInfo:
-        kwargs = {"http": self._http} | kwargs
-        return PersonalReservationInfo(self.camp_id, self.parent_surname, **kwargs)
+        return PersonalReservationInfo(self.camp_id, self.parent_surname, **{"http": self._http} | kwargs)
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
 class EventReservationSummary:
     option = attrib(
         type=EventReservationOption,
-        converter=enum_converter(EventReservationOption),
+        converter=convert_enum(EventReservationOption),
         validator=instance_of(EventReservationOption)
     )
     name = attrib(
@@ -540,7 +538,7 @@ class EventReservationSummary:
                     return 900
                 case EventReservationOption.CHILD_AND_TWO_PARENTS:
                     return 1300
-            raise ValueError("Option is not one of the enum elements")
+            raise ValueError("Opcja nie jest jedną z elementów EventReservationOption")
         return self._price
 
     def to_dict(self) -> dict:
@@ -574,14 +572,14 @@ class CrewMember:
     )
     character = attrib(
         type=str | None,
-        converter=character_converter,
+        converter=convert_character,
         validator=v_optional(
             instance_of(str)
         )
     )
     position = attrib(
         type=CrewRole,
-        converter=enum_converter(CrewRole),
+        converter=convert_enum(CrewRole),
         validator=instance_of(CrewRole)
     )
     description = attrib(

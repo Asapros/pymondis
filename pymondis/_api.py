@@ -1,10 +1,11 @@
 from datetime import datetime
-from typing import List, Dict
+from typing import Dict, List
 
 from httpx import AsyncClient
 
-from .util import default_backoff
-from ._metadata import __version__, __title__
+from ._util import default_backoff
+from ._metadata import __title__, __version__
+
 
 class HTTPClient(AsyncClient):
     def __init__(
@@ -25,7 +26,8 @@ class HTTPClient(AsyncClient):
             cache_content: bytes | None = None
     ) -> bytes:
         headers = {
-            "If-Modified-Since": cache_time.strftime("%a, %d %b %Y %H:%M:%S GMT")} if cache_time is not None else {}
+            "If-Modified-Since": cache_time.strftime("%a, %d %b %Y %H:%M:%S GMT")
+        } if cache_time is not None else {}
         response = await self.get(
             url,
             headers=headers
@@ -100,7 +102,7 @@ class HTTPClient(AsyncClient):
             "Jeśli jest ci potrzebna możesz otworzyć nowy issue: https://github.com/Asapros/pymondis/issues"
         )
         # Dane najprawdopodobniej są wysyłane jako form, ale nie ma tego w swagger-ze, a ja jestem borowikiem w
-        # javascript-a i nie czaje o co chodzi, dodajcie do dokumentacji pls
+        # javascript-a i nie czaje, o co chodzi, dodajcie do dokumentacji pls
 
     @default_backoff
     async def post_reservations_subscribe(self, reservation_model: dict) -> List[str]:
@@ -124,7 +126,7 @@ class HTTPClient(AsyncClient):
 
     @default_backoff
     async def patch_vote(self, category: str, name: str):
-        response = await self.patch(  # A mnie dalej zastanawia czemu tu patch jest, a nie post...
+        response = await self.patch(  # A mnie dalej zastanawia, czemu tu patch jest, a nie post...
             self.base + "/Vote/{}/{}".format(category, name)
         )
         response.raise_for_status()

@@ -5,7 +5,7 @@ from typing import Type
 from backoff import on_exception, expo
 from httpx import HTTPStatusError
 
-from pymondis.exceptions import NoEnumMatchError
+from ._exceptions import NoEnumMatchError
 
 default_backoff = on_exception(
     expo,
@@ -24,30 +24,36 @@ def get_enum_element(enum: Type[Enum], value: str) -> Enum:
         raise NoEnumMatchError(enum, value)
 
 
-def date_converter(value: str | datetime) -> datetime:
+def get_date(value: str) -> datetime:
+    return datetime.strptime(value, "%Y-%m-%dT%H:%M:%S")
+
+
+def get_http_date(value: datetime) -> str:
+    return value.strftime("%a, %d %b %Y %H:%M:%S GMT")
+
+
+def convert_date(value: str | datetime) -> datetime:
     """Zamienia string-a na datetime"""
-    return value if isinstance(value, datetime) else datetime.strptime(value, "%Y-%m-%dT%H:%M:%S")
+    return value if isinstance(value, datetime) else get_date(value)
 
 
-def character_converter(string: str) -> str | None:
+def convert_character(string: str) -> str | None:
     """
     Zamienia 'Nazwa postaci Quatromondis' na None,
-    bo ktoś stwierdził że taka będzie wartość jak ktoś nie ma nazwy...
+    bo ktoś stwierdził, że taka będzie wartość, jak ktoś nie ma nazwy...
     """
     return None if string == "Nazwa postaci Quatromondis" else string
 
 
-def empty_string_converter(string: str) -> str | None:
+def convert_empty_string(string: str) -> str | None:
     """Zamienia pustego string-a na None"""
     return string if string else None
 
 
-def enum_converter(enum: Type[Enum]):
+def convert_enum(enum: Type[Enum]):
     """Wrapper get_enum_element"""
 
     def inner_enum_converter(value: str | Enum) -> Enum:
-        if isinstance(value, Enum):
-            return value
-        return get_enum_element(enum, value)
+        return value if isinstance(value, Enum) else get_enum_element(enum, value)
 
     return inner_enum_converter
