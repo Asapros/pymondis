@@ -2,7 +2,7 @@ from datetime import datetime
 
 from httpx import AsyncClient
 
-from ._util import backoff, get_http_date
+from ._util import backoff, out_get_http_date
 from ._metadata import __title__, __version__
 
 
@@ -26,7 +26,7 @@ class HTTPClient(AsyncClient):
             cache_content: bytes | None = None
     ) -> bytes:
         headers = {
-            "If-Modified-Since": get_http_date(cache_time)
+            "If-Modified-Since": out_get_http_date(cache_time)
         } if cache_time is not None else {}
         response = await self.get(
             url,

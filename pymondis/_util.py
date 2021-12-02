@@ -36,17 +36,25 @@ def get_enum_element(enum: Type[Enum], value: str) -> Enum:
         raise NoEnumMatchError(enum, value)
 
 
-def get_date(value: str) -> datetime:
+def in_get_date(value: str) -> datetime:
     return datetime.strptime(value, "%Y-%m-%dT%H:%M:%S")
 
 
-def get_http_date(value: datetime) -> str:
+def out_get_date(value: datetime) -> str:
+    return value.strftime("%Y-%m-%dT%H:%M:%S")
+
+
+def in_get_http_date(value: str) -> datetime:
+    return datetime.strptime(value, "%a, %d %b %Y %H:%M:%S GMT")
+
+
+def out_get_http_date(value: datetime) -> str:
     return value.strftime("%a, %d %b %Y %H:%M:%S GMT")
 
 
 def convert_date(value: str | datetime) -> datetime:
     """Zamienia string-a na datetime"""
-    return value if isinstance(value, datetime) else get_date(value)
+    return value if isinstance(value, datetime) else in_get_date(value)
 
 
 def convert_character(string: str) -> str | None:
