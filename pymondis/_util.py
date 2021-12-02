@@ -1,18 +1,30 @@
+from asyncio import sleep
 from datetime import datetime
 from enum import Enum
+from functools import wraps
 from typing import Type
 
-from backoff import on_exception, expo
 from httpx import HTTPStatusError
 
 from ._exceptions import NoEnumMatchError
 
-default_backoff = on_exception(
-    expo,
-    HTTPStatusError,
-    max_tries=3,
-    giveup=lambda status: 400 <= status.response.status_code < 500
-)
+
+def backoff(function):
+    @wraps(function)
+    async def inner_backoff(*args, **kwargs):
+        tries: int = 0
+        while True:
+            try:
+                response = await function(*args, **kwargs)
+                response.raise_for_status()
+                return response
+            except HTTPStatusError as error:
+                if 400 <= error.response.status_code < 500 or tries > 2:
+                    raise
+                await sleep(tries + 0.5)
+            tries += 1
+
+    return inner_backoff
 
 
 def get_enum_element(enum: Type[Enum], value: str) -> Enum:

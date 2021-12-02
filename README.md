@@ -1,15 +1,10 @@
 # PYMONDIS
-Unofficial [Quatromondis](https://quatromondis.pl/) api wrapper
-
-## CAUTION!
-1. The whole documentation is written in Polish
-2. This project is meant for [_Quatromondis_](https://quatromondis.pl/) community
-3. Don't bother with the repository, if you're not a part of it, or you just don't know the language in general
+Nieoficjalny wrapper api [Quatromondis](https://quatromondis.pl/)
 
 ### Fajne rzeczy
 - Wszystkie zapytania są asynchroniczne z użyciem `httpx`
-- Fajnie obiekty z użyciem `attrs` (nawet `str()` działa!)
-- Ponawianie nieudanych zapytań z użyciem `backoff`
+- Fajnie obiekty z użyciem `attrs` (nawet `repr()` działa!)
+- Ponawianie nieudanych zapytań
 - Epicka składnia python-a 3.10
 - Cache-owanie zdjęć
 - Type-hint-y
