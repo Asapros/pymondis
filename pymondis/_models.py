@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import List
 from warnings import warn
 
 from attr import attrib, attrs
@@ -9,7 +8,7 @@ from attr.converters import optional as c_optional
 from ._exceptions import RevoteError, NotFullyImplementedWarning
 from ._api import HTTPClient
 from ._enums import Castle, CampLevel, World, Season, EventReservationOption, CrewRole, TShirtSize, SourcePoll
-from ._util import convert_enum, convert_date, convert_character, convert_empty_string
+from ._util import convert_enum, convert_date, convert_character, convert_empty_string, out_get_date
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
@@ -133,7 +132,7 @@ class Gallery:
         repr=False
     )
 
-    async def get_photos(self, http: HTTPClient | None = None) -> List[Photo]:
+    async def get_photos(self, http: HTTPClient | None = None) -> list[Photo]:
         client = http or self._http
         photos = await client.get_images_galleries(self.gallery_id)
         return [
@@ -142,7 +141,7 @@ class Gallery:
         ]
 
     @classmethod
-    def init_from_dict(cls, data: dict, **kwargs) -> "Gallery":
+    def init_from_dict(cls, data: dict[str, str | int | bool], **kwargs) -> "Gallery":
         return cls(
             gallery_id=data["Id"],
             start=data["StartDate"],
@@ -171,7 +170,7 @@ class Camp:
         )
 
         @classmethod
-        def init_from_dict(cls, data: dict) -> "Transport":
+        def init_from_dict(cls, data: dict[str, str | int]) -> "Transport":
             return cls(
                 city=data["City"],
                 one_way_price=data["OneWayPrice"],
@@ -237,29 +236,29 @@ class Camp:
     )
     start = attrib(
         type=datetime,
-        converter=lambda value: value if isinstance(value, datetime) else convert_date(value),
+        converter=convert_date,
         validator=instance_of(datetime)
     )
     end = attrib(
         type=datetime,
-        converter=lambda value: value if isinstance(value, datetime) else convert_date(value),
+        converter=convert_date,
         validator=instance_of(datetime)
     )
     ages = attrib(
-        type=List[str],
+        type=list[str],
         validator=deep_iterable(
             instance_of(str)
         )
     )
     transports = attrib(
-        type=List[Transport],
+        type=list[Transport],
         validator=deep_iterable(
             instance_of(Transport)
         )
     )
 
     @classmethod
-    def init_from_dict(cls, data: dict) -> "Camp":
+    def init_from_dict(cls, data: dict[str, str | int | bool | None | list[str | dict[str, str | int]]]) -> "Camp":
         return cls(
             data["Id"],
             data["Code"],
@@ -306,7 +305,7 @@ class Purchaser:
         validator=instance_of(str)
     )
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, str]:
         return {
             "Name": self.name,
             "Surname": self.surname,
@@ -333,13 +332,13 @@ class PersonalReservationInfo:
         repr=False
     )
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, str]:
         return {
             "ReservationId": self.reservation_id,
             "Surname": self.surname
         }
 
-    async def get_details(self, http: HTTPClient | None) -> ReservationManageDetails | dict:
+    async def get_details(self, http: HTTPClient | None) -> dict[str, str | bool]:
         warn(
             "Ta metoda będzie w przyszłości zwracała ReservationMangeDetails."
             "Jeśli chcesz pomóc w jej implementacji otwórz nowy issue: https://github.com/Asapros/pymondis/issues",
@@ -363,21 +362,19 @@ class WebReservationModel:
         )
         t_shirt_size = attrib(
             type=TShirtSize,
-            converter=convert_enum(TShirtSize),
             validator=instance_of(TShirtSize)
         )
         birthdate = attrib(
             type=datetime,
-            converter=convert_date,
             validator=instance_of(datetime)
         )
 
-        def to_dict(self) -> dict:
+        def to_dict(self) -> dict[str, str]:
             return {
                 "Name": self.name,
                 "Surname": self.surname,
                 "Tshirt": self.t_shirt_size.value,
-                "Dob": self.birthdate
+                "Dob": out_get_date(self.birthdate)
             }
 
     camp_id = attrib(
@@ -410,11 +407,10 @@ class WebReservationModel:
     )
     poll = attrib(
         type=SourcePoll,
-        converter=convert_enum(SourcePoll),
         validator=instance_of(SourcePoll)
     )
     siblings = attrib(
-        type=List[Child],
+        type=list[Child],
         validator=deep_iterable(
             instance_of(Child)
         ),
@@ -436,7 +432,7 @@ class WebReservationModel:
         repr=False
     )
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, int | dict[str, dict[str, str] | list[dict[str, str]]] | dict[str, str]]:
         return {
             "SubcampId": self.camp_id,
             "Childs": {  # English 100
@@ -541,7 +537,7 @@ class EventReservationSummary:
             raise ValueError("Opcja nie jest jedną z elementów EventReservationOption")
         return self._price
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, str | int | bool]:
         data = {
             "Price": self.price,
             "Name": self.name,
@@ -553,10 +549,13 @@ class EventReservationSummary:
             "Email": self.email
         }
         if self.option in (EventReservationOption.CHILD, EventReservationOption.CHILD_AND_PARENT):
-            data.update({"FirstParentName": self.first_parent_name, "FirstParentSurname": self.first_parent_surname})
+            data.update(
+                {"FirstParentName": self.first_parent_name, "FirstParentSurname": self.first_parent_surname}
+            )
         if self.option is EventReservationOption.CHILD_AND_TWO_PARENTS:
             data.update(
-                {"SecondParentName": self.second_parent_name, "SecondParentSurname": self.second_parent_surname})
+                {"SecondParentName": self.second_parent_name, "SecondParentSurname": self.second_parent_surname}
+            )
         return data
 
 
@@ -592,7 +591,7 @@ class CrewMember:
     )
 
     @classmethod
-    def init_from_dict(cls, data: dict, **kwargs) -> "CrewMember":
+    def init_from_dict(cls, data: dict[str, str], **kwargs) -> "CrewMember":
         return cls(
             name=data["Name"],
             surname=data["Surname"],
@@ -644,7 +643,7 @@ class PlebisciteCandidate:
     )
 
     @classmethod
-    def init_from_dict(cls, data: dict, **kwargs) -> "PlebisciteCandidate":
+    def init_from_dict(cls, data: dict[str, str | int | bool | None], **kwargs) -> "PlebisciteCandidate":
         return cls(
             name=data["Name"],
             votes=data["Result"],

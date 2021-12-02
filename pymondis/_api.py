@@ -1,9 +1,8 @@
 from datetime import datetime
-from typing import Dict, List
 
 from httpx import AsyncClient
 
-from ._util import backoff
+from ._util import backoff, get_http_date
 from ._metadata import __title__, __version__
 
 
@@ -27,7 +26,7 @@ class HTTPClient(AsyncClient):
             cache_content: bytes | None = None
     ) -> bytes:
         headers = {
-            "If-Modified-Since": cache_time.strftime("%a, %d %b %Y %H:%M:%S GMT")
+            "If-Modified-Since": get_http_date(cache_time)
         } if cache_time is not None else {}
         response = await self.get(
             url,
@@ -37,7 +36,7 @@ class HTTPClient(AsyncClient):
             return cache_content
         return response.content
 
-    async def get_camps(self) -> List[dict]:
+    async def get_camps(self) -> list[dict[str, str | int | bool | None | list[str | dict[str, str | int]]]]:
         response = await self.get(
             self.base + "/Camps",
             headers={"Accept": "application/json"}
@@ -45,19 +44,19 @@ class HTTPClient(AsyncClient):
         return response.json()
 
     async def post_events_inauguration(self, reservation_model: dict):
-        response = await self.post(
+        await self.post(
             self.base + "/Events/Inauguration",
             json=reservation_model
         )
 
-    async def get_images_galleries_castle(self, castle: str) -> List[Dict[str, str | int | bool]]:
+    async def get_images_galleries_castle(self, castle: str) -> list[dict[str, str | int | bool]]:
         response = await self.get(
             self.base + "/Images/Galeries/Castle/{}".format(castle),  # 'Galeries' XD
             headers={"Accept": "application/json"})
 
         return response.json()
 
-    async def get_images_galleries(self, gallery_id: int) -> List[Dict[str, str]]:
+    async def get_images_galleries(self, gallery_id: int) -> list[dict[str, str]]:
         response = await self.get(
             self.base + "/Images/Galeries/{}".format(gallery_id),  # Znowu 'Galeries'
             headers={"Accept": "application/json"})
@@ -65,18 +64,18 @@ class HTTPClient(AsyncClient):
         return response.json()
 
     async def post_orders_four_worlds_beginning(self, purchaser: dict):
-        response = await self.post(
+        await self.post(
             self.base + "/Orders/FourWorldsBeginning",
             json=purchaser
         )
 
     async def post_parents_zone_survey(self, survey_hash: str, result: dict):
-        response = await self.post(
+        await self.post(
             self.base + "/ParentsZone/Survey/{}".format(survey_hash),
             json=result
         )
 
-    async def get_parents_zone_crew(self) -> List[dict]:
+    async def get_parents_zone_crew(self) -> list[dict[str, str]]:
         response = await self.get(
             self.base + "/ParentsZone/Crew",
             headers={"Accept": "application/json"}
@@ -92,7 +91,7 @@ class HTTPClient(AsyncClient):
         # Dane najprawdopodobniej są wysyłane jako form, ale nie ma tego w swagger-ze, a ja jestem borowikiem w
         # javascript-a i nie czaje, o co chodzi, dodajcie do dokumentacji pls
 
-    async def post_reservations_subscribe(self, reservation_model: dict) -> List[str]:
+    async def post_reservations_subscribe(self, reservation_model: dict) -> list[str]:
         response = await self.post(
             self.base + "/Reservations/Subscribe",
             json=reservation_model,
@@ -101,7 +100,7 @@ class HTTPClient(AsyncClient):
 
         return response.json()
 
-    async def post_reservations_manage(self, pri: dict) -> Dict[str, str | bool]:
+    async def post_reservations_manage(self, pri: dict[str, str]) -> dict[str, str | bool]:
         response = await self.post(
             self.base + "/Reservations/Manage",
             json=pri,
@@ -115,7 +114,7 @@ class HTTPClient(AsyncClient):
             self.base + "/Vote/{}/{}".format(category, name)
         )
 
-    async def get_vote_plebiscite(self, year: int) -> List[Dict[str, str | int | bool]]:
+    async def get_vote_plebiscite(self, year: int) -> list[dict[str, str | int | bool]]:
         response = await self.get(
             self.base + "/Vote/plebiscite/{}".format(year),
             # Jedyny endpoint gdzie słowo w ścieżce nie się zaczyna dużą literą...

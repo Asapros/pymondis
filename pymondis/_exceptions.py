@@ -1,5 +1,4 @@
 from enum import Enum
-from typing import Type
 
 
 class NotFullyImplementedWarning(UserWarning):
@@ -12,5 +11,5 @@ class RevoteError(Exception):
 
 
 class NoEnumMatchError(Exception):
-    def __init__(self, enum: Type[Enum], value):
+    def __init__(self, enum: type[Enum], value):
         super().__init__("Nie znaleziono żadnych pasujących elementów w {} dla wartości: {}".format(enum, value))
