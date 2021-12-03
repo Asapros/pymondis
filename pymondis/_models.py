@@ -304,6 +304,14 @@ class Purchaser:
         type=str,
         validator=instance_of(str)
     )
+    _http = attrib(
+        type=HTTPClient | None,
+        validator=v_optional(
+            instance_of(HTTPClient),
+        ),
+        default=None,
+        repr=False
+    )
 
     def to_dict(self) -> dict[str, str]:
         return {
@@ -313,6 +321,10 @@ class Purchaser:
             "Phone": self.phone,
             "ParcelLocker": self.parcel_locker
         }
+
+    async def order_fwb(self, http: HTTPClient | None = None):
+        client = http or self._http
+        await client.post_orders_four_worlds_beginning(self.to_dict())
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
@@ -338,7 +350,7 @@ class PersonalReservationInfo:
             "Surname": self.surname
         }
 
-    async def get_details(self, http: HTTPClient | None) -> dict[str, str | bool]:
+    async def get_details(self, http: HTTPClient | None = None) -> dict[str, str | bool]:
         warn(
             "Ta metoda będzie w przyszłości zwracała ReservationMangeDetails."
             "Jeśli chcesz pomóc w jej implementacji otwórz nowy issue: https://github.com/Asapros/pymondis/issues",
@@ -456,6 +468,10 @@ class WebReservationModel:
     def pri(self, **kwargs) -> PersonalReservationInfo:
         return PersonalReservationInfo(self.camp_id, self.parent_surname, **{"http": self._http} | kwargs)
 
+    async def reserve_camp(self, http: HTTPClient | None = None) -> list[str]:
+        client = http or self._http
+        return await client.post_reservations_subscribe(self.to_dict())
+
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
 class EventReservationSummary:
@@ -516,6 +532,12 @@ class EventReservationSummary:
             instance_of(str)
         )
     )
+    _http = attrib(
+        type=HTTPClient | None,
+        validator=instance_of(HTTPClient),
+        default=None,
+        repr=False
+    )
     _price = attrib(
         type=int,
         validator=v_optional(
@@ -557,6 +579,10 @@ class EventReservationSummary:
                 {"SecondParentName": self.second_parent_name, "SecondParentSurname": self.second_parent_surname}
             )
         return data
+
+    async def reserve_inauguration(self, http: HTTPClient | None):
+        client = http or self._http
+        await client.post_events_inauguration(self.to_dict())
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
