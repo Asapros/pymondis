@@ -1,5 +1,5 @@
 # PYMONDIS
-<img src="README.png" alt="Banner pymondis" style="width: 100%;"/>
+<img src="banner.png" alt="Banner pymondis" style="width: 100%;"/>
 
 Nieoficjalny wrapper api [Quatromondis](https://quatromondis.pl/)
 
