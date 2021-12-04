@@ -1,4 +1,4 @@
-.idea
+.idea/
 __pycache__/
 *.egg-info/
 dist/
@@ -7,3 +7,4 @@ build/
 /build.bat
 /upload.bat
 /concept
+/delbranch.bat
