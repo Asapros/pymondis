@@ -5,7 +5,7 @@ from attr import attrib, attrs
 from attr.validators import instance_of, optional as v_optional, deep_iterable
 from attr.converters import optional as c_optional
 
-from ._exceptions import RevoteError, NotFullyImplementedWarning
+from ._exceptions import RevoteError
 from ._api import HTTPClient
 from ._enums import Castle, CampLevel, World, Season, EventReservationOption, CrewRole, TShirtSize, SourcePoll
 from ._util import convert_enum, convert_date, convert_character, convert_empty_string, out_get_date
@@ -13,12 +13,33 @@ from ._util import convert_enum, convert_date, convert_character, convert_empty_
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
 class ParentSurveyResult:
-    pass
+    _http = None
+
+    def to_dict(self):
+        raise NotImplementedError(
+            "Ta klasa jeszcze nie jest do końca zaimplementowana."
+            "Jeśli wiesz gdzie na stronie występuje form do wysłania na /api/ParentsZone/Survey/..."
+            "Możesz otworzyć nowy issue https://github.com/Asapros/pymondis/issues ('Implementacja zapytania POST')"
+            "i się tym podzielić."
+        )
+
+    async def submit_survey(self, survey_hash: str, http: HTTPClient | None = None):
+        client = http or self._http
+        await client.post_parents_zone_survey(survey_hash, self.to_dict())
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
 class ReservationManageDetails:
-    pass
+    @classmethod
+    def init_from_dict(cls, data: dict) -> "ReservationManageDetails":
+        raise NotImplementedError(
+            "Ta klasa jeszcze nie jest do końca zaimplementowana."
+            "Jeśli masz zarezerwowany obóz i jego kod to możesz wysłać zapytanie przez"
+            "HTTPClient.post_reservation_manage."
+            "Otwórz nowy issue https://github.com/Asapros/pymondis/issues ('Implementacja zapytania POST')"
+            "i podziel się wynikiem funkcji, nie zapomnij za cenzurować danych osobowych."
+            "Możesz też dołączyć do issue przypuszczenia do czego może być każde pole."
+        )
 
 
 @attrs(repr=True, slots=True, eq=False)
@@ -350,15 +371,10 @@ class PersonalReservationInfo:
             "Surname": self.surname
         }
 
-    async def get_details(self, http: HTTPClient | None = None) -> dict[str, str | bool]:
-        warn(
-            "Ta metoda będzie w przyszłości zwracała ReservationMangeDetails."
-            "Jeśli chcesz pomóc w jej implementacji otwórz nowy issue: https://github.com/Asapros/pymondis/issues",
-            NotFullyImplementedWarning
-        )
+    async def get_details(self, http: HTTPClient | None = None) -> ReservationManageDetails:
         client = http or self._http
         details = await client.post_reservations_manage(self.to_dict())
-        return details
+        return ReservationManageDetails.init_from_dict(details)
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
@@ -538,7 +554,7 @@ class EventReservationSummary:
         default=None,
         repr=False
     )
-    _price = attrib(
+    _price = attrib(  # TODO Factory
         type=int,
         validator=v_optional(
             instance_of(int)

@@ -2,7 +2,7 @@ from ._metadata import __version__, __title__, __author__, __license__, __descri
 from ._client import Client
 from ._api import HTTPClient
 from ._enums import CrewRole, Castle, CampLevel, World, Season, EventReservationOption, TShirtSize, SourcePoll
-from ._exceptions import NotFullyImplementedWarning, RevoteError, NoEnumMatchError
+from ._exceptions import RevoteError, NoEnumMatchError
 from ._models import (
     Resource,
     Gallery,
@@ -45,7 +45,6 @@ __all__ = (
     "EventReservationOption",
     "TShirtSize",
     "SourcePoll",
-    "NotFullyImplementedWarning",
     "RevoteError",
     "NoEnumMatchError",
     "Resource",

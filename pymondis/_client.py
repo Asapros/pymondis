@@ -35,12 +35,6 @@ class Client:
     async def apply_for_job(self):
         await self.http.post_parents_zone_apply()
 
-    async def submit_survey(self, survey_hash: str, result: ParentSurveyResult):
-        raise NotImplementedError(
-            "Ta metoda będzie brała ParentSurveyResult jako drugi argument"
-            "Jeśli chcesz pomóc w jej implementacji otwórz nowy issue: https://github.com/Asapros/pymondis/issues"
-        )
-
     async def __aenter__(self) -> "Client":
         await self.http.__aenter__()
         return self

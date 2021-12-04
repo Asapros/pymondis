@@ -1,10 +1,6 @@
 from enum import Enum
 
 
-class NotFullyImplementedWarning(UserWarning):
-    pass
-
-
 class RevoteError(Exception):
     def __init__(self, category: str):
         super().__init__("Próbowałeś zagłosować na kategorię '{}' drugi raz".format(category))

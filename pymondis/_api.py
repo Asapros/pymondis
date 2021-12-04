@@ -85,8 +85,12 @@ class HTTPClient(AsyncClient):
 
     async def post_parents_zone_apply(self):
         raise NotImplementedError(
-            "Nie mogę aktualnie zaimplementować tej metody, bo nie wiem jak są wysyłane dane"
-            "Jeśli jest ci potrzebna możesz otworzyć nowy issue: https://github.com/Asapros/pymondis/issues"
+            "Ta metoda nie jest jeszcze zaimplementowana."
+            "Zamiast niej możesz skorzystać z tradycyjnego formularza na stronie, śledząc wysyłane zapytania - "
+            "może devtools w tab-ie NETWORK (chrome) czy coś innego (nie znam się)."
+            "Pamiętaj żeby nie wysyłać niczego gdy rzeczywiście nie chcesz zgłosić się do pracy."
+            "Później otwórz nowy issue (https://github.com/Asapros/pymondis/issues (Implementacja zapytania POST)"
+            "i podziel się nagranym zapytaniem (nie zapomnij za cenzurować danych osobowych)"
         )
         # Dane najprawdopodobniej są wysyłane jako form, ale nie ma tego w swagger-ze, a ja jestem borowikiem w
         # javascript-a i nie czaje, o co chodzi, dodajcie do dokumentacji pls
