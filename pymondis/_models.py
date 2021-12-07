@@ -378,7 +378,7 @@ class PersonalReservationInfo:
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
-class WebReservationModel:
+class Reservation:
     class Child:
         name = attrib(
             type=str,
@@ -704,4 +704,4 @@ class PlebisciteCandidate:
 
 Photo = Gallery.Photo
 Transport = Camp.Transport
-Child = WebReservationModel.Child
+Child = Reservation.Child
