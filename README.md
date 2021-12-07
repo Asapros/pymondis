@@ -1,7 +1,7 @@
 # PYMONDIS
 <img src="banner.png" alt="Banner pymondis" style="width: 100%;"/>
 
-Nieoficjalny wrapper api [Quatromondis](https://quatromondis.pl/) w pythonie
+Nieoficjalny wrapper api [Quatromondis](https://quatromondis.pl/) w python-ie
 
 ## Fajne rzeczy
 - Wszystkie zapytania są asynchroniczne z użyciem `httpx`
