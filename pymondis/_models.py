@@ -1,12 +1,13 @@
 from datetime import datetime
-from warnings import warn
+from typing import AsyncIterator
 
 from attr import attrib, attrs
 from attr.validators import instance_of, optional as v_optional, deep_iterable
 from attr.converters import optional as c_optional
+from httpx import Response
 
 from ._exceptions import RevoteError
-from ._api import HTTPClient
+from ._http import HTTPClient
 from ._enums import Castle, CampLevel, World, Season, EventReservationOption, CrewRole, TShirtSize, SourcePoll
 from ._util import convert_enum, convert_date, convert_character, convert_empty_string, out_get_date
 
@@ -56,30 +57,29 @@ class Resource:
         ),
         repr=False
     )
-    _cache_time = attrib(
-        type=datetime | None,
+    _cache_response = attrib(
+        type=Response | None,
         default=None,
         validator=v_optional(
-            instance_of(datetime)
+            instance_of(Response)
         ),
         kw_only=True,
         repr=False
     )
-    _cache_content = attrib(
-        type=bytes | None,
-        default=None,
-        kw_only=True,
-        repr=False
-    )
+
+    async def get_stream(self, use_cache: bool = True, update_cache: bool = True, chunk_size: int | None = 1024, http: HTTPClient | None = None) -> AsyncIterator[bytes]:
+        # Spoiler - Lock-i działają wolniej w tym przypadku...
+        client = http or self._http
+        response = await client.get_resource(self.url, self._cache_response if use_cache else None)
+        if update_cache:
+            self._cache_response = response
+        return response.aiter_bytes(chunk_size)
 
     async def get(self, use_cache: bool = True, update_cache: bool = True, http: HTTPClient | None = None) -> bytes:
-        # Spoiler - Lock-i działają wolniej w tym przypadku...
-        arguments = (self._cache_time, self._cache_content) if use_cache else ()
-        client = http or self._http
-        content = await client.get_resource(self.url, *arguments)
-        if update_cache:
-            self._cache_time = datetime.now()
-            self._cache_content = content
+        iterator = await self.get_stream(use_cache, update_cache, None, http)
+        content: bytes = b""
+        async for chunk in iterator:
+            content += chunk
         return content
 
     def __eq__(self, other: "Resource") -> bool:
@@ -490,7 +490,7 @@ class Reservation:
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
-class EventReservationSummary:
+class EventReservation:
     option = attrib(
         type=EventReservationOption,
         converter=convert_enum(EventReservationOption),

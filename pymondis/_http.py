@@ -1,8 +1,6 @@
-from datetime import datetime
+from httpx import AsyncClient, Response
 
-from httpx import AsyncClient
-
-from ._util import backoff, out_get_http_date
+from ._util import backoff
 from ._metadata import __title__, __version__
 
 
@@ -22,19 +20,21 @@ class HTTPClient(AsyncClient):
     async def get_resource(
             self,
             url: str,
-            cache_time: datetime | None = None,
-            cache_content: bytes | None = None
-    ) -> bytes:
-        headers = {
-            "If-Modified-Since": out_get_http_date(cache_time)
-        } if cache_time is not None else {}
+            cache_response: Response | None = None
+    ) -> Response:
+        headers = {}
+        if cache_response is not None:
+            if cache_response.headers["Last-Modified"] is not None:
+                headers["If-Modified-Since"] = cache_response.headers["Last-Modified"]
+            if cache_response.headers["ETag"] is not None:
+                headers["If-None-Match"] = cache_response.headers["ETag"]
         response = await self.get(
             url,
             headers=headers
         )
         if response.status_code == 304:
-            return cache_content
-        return response.content
+            return cache_response
+        return response
 
     async def get_camps(self) -> list[dict[str, str | int | bool | None | list[str | dict[str, str | int]]]]:
         response = await self.get(

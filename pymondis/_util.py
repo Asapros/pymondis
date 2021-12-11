@@ -19,8 +19,10 @@ def backoff(function):
                 response.raise_for_status()
                 return response
             except HTTPStatusError as error:
-                if 400 <= error.response.status_code < 500 or tries > 2:
-                    raise
+                if error.response.status_code < 500:
+                    if error.response.status_code >= 400 or tries > 2:
+                        raise
+                    return response
                 await sleep(tries + 0.5)
             tries += 1
 
