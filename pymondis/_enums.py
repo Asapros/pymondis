@@ -2,11 +2,20 @@ from enum import Enum
 
 
 class CrewRole(Enum):
+    """
+    Role członka kadry
+
+    PSOR - psor
+    HEADMASTER - kierownik
+    """
     PSOR = "Tutor"
     HEADMASTER = "HeadMaster"
 
 
 class Castle(Enum):
+    """
+    Zamki, w których organizowane są obozy
+    """
     BARANOW = "Zamek w Baranowie Sandomierskim"
     CZOCHA = "Zamek Czocha"
     GNIEW = "Zamek Gniew"
@@ -23,33 +32,66 @@ class Castle(Enum):
 
 
 class CampLevel(Enum):
+    """
+    Poziomy obozów
+
+    MASTER - master
+    NORMAL - reszta
+    """
     NORMAL = "Normal"
     MASTER = "Master"
 
 
 class World(Enum):
-    WIZARDS = "Wizzards"  # English 100
+    """
+    Światy, w których organizowane są obozy
+
+    WIZARDS - czarodzieje
+    PATHFINDERS - tropiciele
+    RECRUITS - rekruci
+    SANGUINS - sanguini
+    ALL - wszystkie 4 światy
+    VARIOUS - tematyczne turnusy, np. "Smocza Straż", "Sekret Zamkowej Krypty", "Księżniczki i Rycerze"
+    """
+    WIZARDS = "Wizzards"
+    # English 100
     PATHFINDERS = "Pathfinders"
     RECRUITS = "Recruits"
     SANGUINS = "Sanguins"
 
-    VARIOUS = "Various"  # Okazjonalne (miejmy nadzieje) tematyczne turnusy -
-    # Aktualnie "Smocza Straż", "Sekret Zamkowej Krypty", "Księżniczki i Rycerze" XDDDDD
+    VARIOUS = "Various"
+
     ALL = "All"
 
 
 class Season(Enum):
+    """
+    Pory roku (ale tylko dwie :P)
+
+    SUMMER - lato
+    WINTER - zima
+    """
     SUMMER = "Summer"
     WINTER = "Winter"
 
 
 class EventReservationOption(Enum):
+    """
+    Opcje rezerwacji inauguracji
+
+    CHILD - dziecko
+    CHILD_AND_ONE_PARENT - dziecko z rodzicem
+    CHILD_AND_TWO_PARENTS - dziecko z rodzicami
+    """
     CHILD = "Tylko dziecko"
     CHILD_AND_ONE_PARENT = "Dziecko + Rodzic"
     CHILD_AND_TWO_PARENTS = "Dziecko + 2 Rodziców"
 
 
 class TShirtSize(Enum):
+    """
+    Rozmiary koszulki
+    """
     XS = "XS"
     S = "S"
     M = "M"
@@ -58,6 +100,9 @@ class TShirtSize(Enum):
 
 
 class SourcePoll(Enum):
+    """
+    Źródło dowiedzenia się o Quatromondis
+    """
     INTERNET = "Internet"
     SOCIALS = "Socials"
     RADIO = "Radio"

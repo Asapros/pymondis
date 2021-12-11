@@ -1,3 +1,7 @@
+"""
+Dane o projekcie - potrzebne w setup.py i w generowaniu User-Agent-a
+"""
+
 __title__ = "pymondis"
 __version__ = "1.0.0.a8"
 __description__ = "Nieoficjalny wrapper Quatromondis API"

@@ -1,3 +1,11 @@
+"""
+Modele ułatwiające korzystanie z Client-a
+Wszystkie modele są tworzone za pomocą biblioteki `attrs`
+Wszystkie modele są zamro... niemutowa... wg. tłumacza google "niezmienne", "stałe"
+
+Czekajcie na dokumentacje poniższych klas, bo jest puzyno i mi się nie chce
+"""
+# TODO dokumentacja
 from datetime import datetime
 from typing import AsyncIterator
 

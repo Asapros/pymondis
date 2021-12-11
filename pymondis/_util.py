@@ -1,3 +1,7 @@
+"""
+Przydatne funkcje
+"""
+# TODO dokumentacja
 from asyncio import sleep
 from datetime import datetime
 from enum import Enum
@@ -10,6 +14,12 @@ from ._exceptions import NoEnumMatchError
 
 
 def backoff(function):
+    """
+    Dekorator funkcji wykonujących zapytania
+
+    :param function: funkcja do wrap-owania
+    :return: wrap-owana funkcja
+    """
     @wraps(function)
     async def inner_backoff(*args, **kwargs):
         tries: int = 0
