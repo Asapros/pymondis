@@ -4,7 +4,7 @@ from unittest import IsolatedAsyncioTestCase
 
 
 class TestHTTPClient(IsolatedAsyncioTestCase):
-    async def test_imports(self):
+    async def test_import(self):
         import pymondis
 
     async def test_gets(self):
@@ -28,7 +28,8 @@ class TestHTTPClient(IsolatedAsyncioTestCase):
     async def test_photos(self):
         from pymondis import Gallery, HTTPClient
         async with HTTPClient() as http:
-            await Gallery(73).get_photos(http)
+            photos = await Gallery(73).get_photos(http)
+            await gather(photos[0].normal.get(), photos[1].large.get_stream(chunk_size=32))
 
 
 if __name__ == "__main__":
