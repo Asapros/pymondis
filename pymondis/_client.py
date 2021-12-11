@@ -1,4 +1,4 @@
-from ._api import HTTPClient
+from ._http import HTTPClient
 from ._enums import Castle
 from ._models import (
     Camp,

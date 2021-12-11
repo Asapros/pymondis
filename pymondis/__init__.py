@@ -1,6 +1,6 @@
 from ._metadata import __version__, __title__, __author__, __license__, __description__
 from ._client import Client
-from ._api import HTTPClient
+from ._http import HTTPClient
 from ._enums import CrewRole, Castle, CampLevel, World, Season, EventReservationOption, TShirtSize, SourcePoll
 from ._exceptions import RevoteError, NoEnumMatchError
 from ._models import (
@@ -10,7 +10,7 @@ from ._models import (
     Purchaser,
     PersonalReservationInfo,
     Reservation,
-    EventReservationSummary,
+    EventReservation,
     CrewMember,
     PlebisciteCandidate,
     Photo,
@@ -53,7 +53,7 @@ __all__ = (
     "Purchaser",
     "PersonalReservationInfo",
     "Reservation",
-    "EventReservationSummary",
+    "EventReservation",
     "CrewMember",
     "PlebisciteCandidate",
     "Photo",
