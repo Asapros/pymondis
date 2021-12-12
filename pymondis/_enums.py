@@ -4,9 +4,6 @@ from enum import Enum
 class CrewRole(Enum):
     """
     Role członka kadry
-
-    PSOR - psor
-    HEADMASTER - kierownik
     """
     PSOR = "Tutor"
     HEADMASTER = "HeadMaster"
@@ -34,9 +31,6 @@ class Castle(Enum):
 class CampLevel(Enum):
     """
     Poziomy obozów
-
-    MASTER - master
-    NORMAL - reszta
     """
     NORMAL = "Normal"
     MASTER = "Master"
@@ -46,12 +40,8 @@ class World(Enum):
     """
     Światy, w których organizowane są obozy
 
-    WIZARDS - czarodzieje
-    PATHFINDERS - tropiciele
-    RECRUITS - rekruci
-    SANGUINS - sanguini
-    ALL - wszystkie 4 światy
-    VARIOUS - tematyczne turnusy, np. "Smocza Straż", "Sekret Zamkowej Krypty", "Księżniczki i Rycerze"
+    :cvar ALL: wszystkie 4 światy
+    :cvar VARIOUS: tematyczne turnusy, np. "Smocza Straż", "Sekret Zamkowej Krypty", "Księżniczki i Rycerze"
     """
     WIZARDS = "Wizzards"
     # English 100
@@ -66,10 +56,7 @@ class World(Enum):
 
 class Season(Enum):
     """
-    Pory roku (ale tylko dwie :P)
-
-    SUMMER - lato
-    WINTER - zima
+    Pory roku (w czterech światach są tylko dwie :P)
     """
     SUMMER = "Summer"
     WINTER = "Winter"
@@ -78,10 +65,6 @@ class Season(Enum):
 class EventReservationOption(Enum):
     """
     Opcje rezerwacji inauguracji
-
-    CHILD - dziecko
-    CHILD_AND_ONE_PARENT - dziecko z rodzicem
-    CHILD_AND_TWO_PARENTS - dziecko z rodzicami
     """
     CHILD = "Tylko dziecko"
     CHILD_AND_ONE_PARENT = "Dziecko + Rodzic"

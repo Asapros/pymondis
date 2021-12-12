@@ -37,7 +37,7 @@ class HTTPClient(AsyncClient):
 
         :param url: url, na którym znajdują się dane - najczęściej hymsresources.blob.core.windows.net
         :param cache_response: zapisana wcześniej odpowiedź - będzie wykorzystana, gdy dane się nie zmieniły
-        :return: odpowiedź serwera - świeżą, lub podaną w ``cache_response``
+        :returns: odpowiedź serwera - świeżą, lub podaną w ``cache_response``
         """
         headers = {}
         if cache_response is not None:
@@ -57,7 +57,7 @@ class HTTPClient(AsyncClient):
         """
         Zwraca surowe dane o aktualnych obozach
 
-        :return: lista surowych dict-ów reprezentujących obozy
+        :returns: lista surowych dict-ów reprezentujących obozy
         """
         response = await self.get(
             self.base + "/Camps",
@@ -81,7 +81,7 @@ class HTTPClient(AsyncClient):
         Dostaje podstawowe dane na temat aktualnych galerii z danego zamku w postaci surowych danych
 
         :param castle: nazwa zamku, z którego pobierana jest lista galerii
-        :return: lista surowych dict-ów reprezentujących aktualne galerie z zamku
+        :returns: lista surowych dict-ów reprezentujących aktualne galerie z zamku
         """
         response = await self.get(
             self.base + "/Images/Galeries/Castle/{}".format(castle),  # 'Galeries' XD
@@ -94,7 +94,7 @@ class HTTPClient(AsyncClient):
         Dostaje linki do zdjęć znajdujących się w galerii o danym ID
 
         :param gallery_id: numer/ID galerii
-        :return: surowe dict-y reprezentujące zdjęcia w dwóch jakościach
+        :returns: surowe dict-y reprezentujące zdjęcia w dwóch jakościach
         """
         response = await self.get(
             self.base + "/Images/Galeries/{}".format(gallery_id),  # Znowu 'Galeries'
@@ -129,7 +129,7 @@ class HTTPClient(AsyncClient):
         """
         Zwraca dane wszystkich psorów i kierowników
 
-        :return: lista surowych danych o kadrze
+        :returns: lista surowych danych o kadrze
         """
         response = await self.get(
             self.base + "/ParentsZone/Crew",
@@ -142,7 +142,7 @@ class HTTPClient(AsyncClient):
         """
         Zgłasza cię do pracy na podstawie surowych danych
 
-        :raise NotImplementedError: zawsze, bo metoda nie jest zaimplementowana -.-
+        :raises ``NotImplementedError``: zawsze, bo metoda nie jest zaimplementowana -.-
         """
         raise NotImplementedError(
             "Ta metoda nie jest jeszcze zaimplementowana."
@@ -160,7 +160,7 @@ class HTTPClient(AsyncClient):
         Rezerwuje obóz na podstawie surowych danych
 
         :param reservation_model: surowe dane o osobie rezerwującej
-        :return: lista kodów rezerwacji
+        :returns: lista kodów rezerwacji
         """
         response = await self.post(
             self.base + "/Reservations/Subscribe",
@@ -175,7 +175,7 @@ class HTTPClient(AsyncClient):
         Dostaje surowe dane o rezerwacji na podstawie jej kodu i nazwiska osoby rezerwującej
 
         :param pri: kod (ReservationId) i nazwisko (Surname)
-        :return: dokładniejsze dane o rezerwacji
+        :returns: dokładniejsze dane o rezerwacji
         """
         response = await self.post(
             self.base + "/Reservations/Manage",
@@ -201,7 +201,7 @@ class HTTPClient(AsyncClient):
         Zwraca surowe dane o kandydatach plebiscytu z danego roku (bez opisów :/)
 
         :param year: rok z którego szukani są kandydaci (>= 2018)
-        :return: lista dict-ów reprezentująca kandydatów
+        :returns: lista dict-ów reprezentująca kandydatów
         """
         response = await self.get(
             self.base + "/Vote/plebiscite/{}".format(year),

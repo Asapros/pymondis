@@ -18,7 +18,8 @@ def backoff(function):
     Dekorator funkcji wykonujących zapytania
 
     :param function: funkcja do wrap-owania
-    :return: wrap-owana funkcja
+    :returns: wrap-owana funkcja
+    :raises HTTPStatusError: nie udało się pomyślnie wykonać zapytania (kod błędu 400-499 lub 3 próby zakończone >= 500)
     """
     @wraps(function)
     async def inner_backoff(*args, **kwargs):
@@ -40,7 +41,13 @@ def backoff(function):
 
 
 def get_enum_element(enum: Type[Enum], value: str) -> Enum:
-    """Zamienia string-a na element enum-a"""
+    """
+    Zamienia string-a na członka enum
+
+    :param enum: enum, w którym szukane będą wartości
+    :param value: string zamieniany na członka powyższego enum-a
+    :return: Członek enum
+    """
     for element in enum:
         if element.value == value:
             return element

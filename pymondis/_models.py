@@ -21,10 +21,29 @@ from ._util import convert_enum, convert_date, convert_character, convert_empty_
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
-class ParentSurveyResult:
-    _http = None
+class ParentSurvey:
+    """
+    Jakaś opinia o obozach, już pewnie nie istnieje na stronach
+    (na web.archive.org też nie ma)
 
-    def to_dict(self):
+    :ivar _http (param http): HTTPClient, który będzie używany do wysłania ankiety
+    """
+    _http = attrib(
+        type=HTTPClient | None,
+        default=None,
+        validator=v_optional(
+            instance_of(HTTPClient)
+        ),
+        repr=False
+    )
+
+    def to_dict(self) -> dict:
+        """
+        Zamienia siebie na dict-a
+
+        :returns: instancja klasy w formie dict-a
+        :raises NotImplementedError: klasa nie jest zaimplementowana
+        """
         raise NotImplementedError(
             "Ta klasa jeszcze nie jest do końca zaimplementowana."
             "Jeśli wiesz gdzie na stronie występuje form do wysłania na /api/ParentsZone/Survey/..."
@@ -32,15 +51,32 @@ class ParentSurveyResult:
             "i się tym podzielić."
         )
 
-    async def submit_survey(self, survey_hash: str, http: HTTPClient | None = None):
+    async def submit(self, survey_hash: str, http: HTTPClient | None = None):
+        """
+        Wrzuca ankietę
+
+        :param survey_hash: Dobre pytanie
+        :param http: HTTPClient, który będzie użyty zamiast tego podanego w konstruktorze
+        """
         client = http or self._http
         await client.post_parents_zone_survey(survey_hash, self.to_dict())
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
-class ReservationManageDetails:
+class ReservationDetails:
+    """
+    Dokładniejsze dane o rezerwacji
+    """
+
     @classmethod
     def init_from_dict(cls, data: dict) -> "ReservationManageDetails":
+        """
+        Initializuje nową instancję za pomocą danych w dict-cie
+
+        :param data: dict, na podstawie którego zostanie stworzona nowa instancja
+        :returns: instancja klasy
+        :raises NotImplementedError: klasa nie jest zaimplementowana :(
+        """
         raise NotImplementedError(
             "Ta klasa jeszcze nie jest do końca zaimplementowana."
             "Jeśli masz zarezerwowany obóz i jego kod to możesz wysłać zapytanie przez"
@@ -53,6 +89,13 @@ class ReservationManageDetails:
 
 @attrs(repr=True, slots=True, eq=False)
 class Resource:
+    """
+    Reprezentuje dane, najczęściej zdjęcie z serwera ``hymsresources.blob.core.windows.net``
+
+    :ivar url: link do danych
+    :ivar _http (param http): HTTPClient, który będzie używany do pobrania resource-a
+    :ivar _cache_response (keyword cache_response): zapisana ostatnia odpowiedź serwera
+    """
     url = attrib(
         type=str,
         validator=instance_of(str)
@@ -75,7 +118,17 @@ class Resource:
         repr=False
     )
 
-    async def get_stream(self, use_cache: bool = True, update_cache: bool = True, chunk_size: int | None = 1024, http: HTTPClient | None = None) -> AsyncIterator[bytes]:
+    async def get_stream(self, use_cache: bool = True, update_cache: bool = True, chunk_size: int | None = 1024,
+                         http: HTTPClient | None = None) -> AsyncIterator[bytes]:
+        """
+        Otwiera strumień danych z linku
+
+        :param use_cache: czy użyć ostatniej zapisanej odpowiedzi, gdy dane nie zmieniły się?
+        :param update_cache: czy zapisać odpowiedź do użycia później przez ``use_cache``
+        :param chunk_size: wielkość fragmentu iterowanych danych (w bajtach)
+        :param http: HTTPClient, który będzie użyty zamiast tego podanego w konstruktorze
+        :returns: asynchroniczny iterator po fragmentach danych przesłanych przez serwer
+        """
         # Spoiler - Lock-i działają wolniej w tym przypadku...
         client = http or self._http
         response = await client.get_resource(self.url, self._cache_response if use_cache else None)
@@ -84,6 +137,14 @@ class Resource:
         return response.aiter_bytes(chunk_size)
 
     async def get(self, use_cache: bool = True, update_cache: bool = True, http: HTTPClient | None = None) -> bytes:
+        """
+        Całkowicie pobiera dane z linku
+
+        :param use_cache: czy użyć ostatniej zapisanej odpowiedzi, gdy dane nie zmieniły się?
+        :param update_cache: czy zapisać odpowiedź do użycia później przez ``use_cache``
+        :param http: HTTPClient, który będzie użyty zamiast tego podanego w konstruktorze
+        :returns: dane po całkowitym ich pobraniu przez ``get_stream``
+        """
         iterator = await self.get_stream(use_cache, update_cache, None, http)
         content: bytes = b""
         async for chunk in iterator:
@@ -96,8 +157,25 @@ class Resource:
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
 class Gallery:
+    """
+    Reprezentuje galerię z fotorelacji
+
+    :ivar gallery_id: id galerii
+    :ivar start: data utworzenia galerii
+    :ivar end: data zakończenia galerii
+    :ivar name: nazwa galerii - ``Z jeśli zima + skrót zamku + numer``
+    :ivar empty: czy galeria jest pusta?
+    :ivar _http (param http): HTTPClient, który będzie używany do pobrania zdjęć z galerii
+    """
+
     @attrs(repr=True, slots=True, frozen=True, hash=True)
     class Photo:
+        """
+        Reprezentuje zdjęcie z fotorelacji w dwóch rozdzielczościach
+
+        :ivar normal: zdjęcie słabej rozdzielczości
+        :ivar large: zdjęcie
+        """
         normal = attrib(
             type=Resource,
             validator=instance_of(Resource)
@@ -109,6 +187,13 @@ class Gallery:
 
         @classmethod
         def init_from_dict(cls, data: dict, **kwargs) -> "Photo":
+            """
+            Initializuje nową instancję za pomocą danych w dict-cie
+
+            :param data: dict, na podstawie którego zostanie stworzona nowa instancja
+            :param \**kwargs: dodatkowe argumenty, przekazywane dalej do konstruktorów ``Resource``
+            :returns: instancja klasy
+            """
             return cls(
                 normal=Resource(data["AlbumUrl"], **kwargs),
                 large=Resource(data["EnlargedUrl"], **kwargs)
@@ -162,6 +247,12 @@ class Gallery:
     )
 
     async def get_photos(self, http: HTTPClient | None = None) -> list[Photo]:
+        """
+        Pobiera wszystkie zdjęcia z galerii
+        
+        :param http: HTTPClient, który będzie użyty zamiast tego podanego w konstruktorze
+        :returns: lista zdjęć
+        """
         client = http or self._http
         photos = await client.get_images_galleries(self.gallery_id)
         return [
@@ -171,6 +262,13 @@ class Gallery:
 
     @classmethod
     def init_from_dict(cls, data: dict[str, str | int | bool], **kwargs) -> "Gallery":
+        """
+        Initializuje nową instancję za pomocą danych w dict-cie
+
+        :param data: dict, na podstawie którego zostanie stworzona nowa instancja
+        :param \**kwargs: dodatkowe argumenty, przekazywane dalej do konstruktora
+        :returns: instancja klasy
+        """
         return cls(
             gallery_id=data["Id"],
             start=data["StartDate"],
@@ -183,8 +281,35 @@ class Gallery:
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
 class Camp:
+    """
+    Reprezentuje obóz
+    
+    :ivar camp_id: id obozu
+    :ivar code: kod obozu ``Z jeśli w zimę + skrót zamku + numer turnusu + skrót programu``
+    :ivar castle: zamek w którym się odbywa
+    :ivar price: cena
+    :ivar promo: przeceniona cena, jeśli jest
+    :ivar active: aktywny? (nie ma listy rezerwowej)
+    :ivar places_left: ilość pozostałych miejsc, ale jest zepsuta, bo czasem anomalnie rośnie i potrafi wynosić 75, kiedy jest lista rezerwowa...
+    :ivar program: temat turnusu
+    :ivar level: poziom (normal albo master)
+    :ivar world: świat
+    :ivar season: pora roku
+    :ivar trip: opisy wycieczki/wycieczek jeśli jakieś są
+    :ivar start: data rozpoczęcia
+    :ivar end: data zakończenia
+    :ivar ages: lista zakresów wiekowych (ciekawe czego...)
+    :ivar transports: transporty na miejsce
+    """
     @attrs(repr=True, slots=True, frozen=True, hash=True)
     class Transport:
+        """
+        Reprezentuje transport na obóz
+
+        :ivar city: nazwa miasta
+        :ivar one_way_price: cena w jedną stronę
+        :ivar two_way_price: cena w dwie strony
+        """
         city = attrib(
             type=str,
             validator=instance_of(str)
@@ -200,6 +325,12 @@ class Camp:
 
         @classmethod
         def init_from_dict(cls, data: dict[str, str | int]) -> "Transport":
+            """
+            Initializuje nową instancję za pomocą danych w dict-cie
+
+            :param data: dict, na podstawie którego zostanie stworzona nowa instancja
+            :returns: instancja klasy
+            """
             return cls(
                 city=data["City"],
                 one_way_price=data["OneWayPrice"],
@@ -288,6 +419,12 @@ class Camp:
 
     @classmethod
     def init_from_dict(cls, data: dict[str, str | int | bool | None | list[str | dict[str, str | int]]]) -> "Camp":
+        """
+        Initializuje nową instancję za pomocą danych w dict-cie
+
+        :param data: dict, na podstawie którego zostanie stworzona nowa instancja
+        :returns: instancja klasy
+        """
         return cls(
             data["Id"],
             data["Code"],
@@ -313,6 +450,16 @@ class Camp:
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
 class Purchaser:
+    """
+    Reprezentuje osobę kupującą
+
+    :ivar name: imię
+    :ivar surname: nazwisko
+    :ivar email: email
+    :ivar phone: numer telefonu
+    :ivar parcel_locker: dane o paczkomacie
+    :ivar _http (param http): HTTPClient, który będzie używany do wysłania zamówienia
+    """
     name = attrib(
         type=str,
         validator=instance_of(str)
@@ -343,21 +490,38 @@ class Purchaser:
     )
 
     def to_dict(self) -> dict[str, str]:
+        """
+        Zamienia siebie na dict-a
+
+        :returns: instancja klasy w formie dict-a
+        """
         return {
-            "Name": self.name,
-            "Surname": self.surname,
-            "Email": self.email,
-            "Phone": self.phone,
+            "Name":         self.name,
+            "Surname":      self.surname,
+            "Email":        self.email,
+            "Phone":        self.phone,
             "ParcelLocker": self.parcel_locker
         }
 
     async def order_fwb(self, http: HTTPClient | None = None):
+        """
+        Zamawia książkę „QUATROMONDIS – CZTERY ŚWIATY HUGONA YORCKA. OTWARCIE”
+
+        :param http: HTTPClient, który będzie użyty zamiast tego podanego w konstruktorze
+        """
         client = http or self._http
         await client.post_orders_four_worlds_beginning(self.to_dict())
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
 class PersonalReservationInfo:
+    """
+    Dane, za których pomocą możesz uzyskać szczegóły rezerwacji (kod, nazwisko)
+
+    :ivar reservation_id: kod rezerwacji
+    :ivar surname: nazwisko zarezerwowanego
+    :ivar _http (param http): HTTPClient, który będzie używany do dostania szczegółów rezerwacji
+    """
     reservation_id = attrib(
         type=str,
         validator=instance_of(str)
@@ -374,15 +538,25 @@ class PersonalReservationInfo:
     )
 
     def to_dict(self) -> dict[str, str]:
+        """
+        Zamienia siebie na dict-a
+
+        :returns: instancja klasy w formie dict-a
+        """
         return {
             "ReservationId": self.reservation_id,
-            "Surname": self.surname
+            "Surname":       self.surname
         }
 
-    async def get_details(self, http: HTTPClient | None = None) -> ReservationManageDetails:
+    async def get_details(self, http: HTTPClient | None = None) -> ReservationDetails:
+        """
+        Dostaje dane o rezerwacji
+
+        :returns: szczegóły rezerwacji
+        """
         client = http or self._http
         details = await client.post_reservations_manage(self.to_dict())
-        return ReservationManageDetails.init_from_dict(details)
+        return ReservationDetails.init_from_dict(details)
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
@@ -407,10 +581,10 @@ class Reservation:
 
         def to_dict(self) -> dict[str, str]:
             return {
-                "Name": self.name,
+                "Name":    self.name,
                 "Surname": self.surname,
-                "Tshirt": self.t_shirt_size.value,
-                "Dob": out_get_date(self.birthdate)
+                "Tshirt":  self.t_shirt_size.value,
+                "Dob":     out_get_date(self.birthdate)
             }
 
     camp_id = attrib(
@@ -471,20 +645,20 @@ class Reservation:
     def to_dict(self) -> dict[str, int | dict[str, dict[str, str] | list[dict[str, str]]] | dict[str, str]]:
         return {
             "SubcampId": self.camp_id,
-            "Childs": {  # English 100
-                "Main": self.child.to_dict(),
+            "Childs":    {  # English 100
+                "Main":     self.child.to_dict(),
                 "Siblings": [sibling.to_dict() for sibling in self.siblings]
             },
-            "Parent": {
-                "Name": self.parent_name,
+            "Parent":    {
+                "Name":    self.parent_name,
                 "Surname": self.parent_surname,
-                "Nip": self.nip
+                "Nip":     self.nip
             },
-            "Details": {
+            "Details":   {
                 "Email": self.email,
                 "Phone": self.phone,
                 "Promo": self.promo_code,
-                "Poll": self.poll.value
+                "Poll":  self.poll.value
             }
         }
 
@@ -585,14 +759,14 @@ class EventReservation:
 
     def to_dict(self) -> dict[str, str | int | bool]:
         data = {
-            "Price": self.price,
-            "Name": self.name,
-            "Surname": self.surname,
-            "ParentName": self.parent_name,
-            "ParentSurname": self.parent_surname,
+            "Price":          self.price,
+            "Name":           self.name,
+            "Surname":        self.surname,
+            "ParentName":     self.parent_name,
+            "ParentSurname":  self.parent_surname,
             "IsParentReused": self.parent_reused,
-            "Phone": self.phone,
-            "Email": self.email
+            "Phone":          self.phone,
+            "Email":          self.email
         }
         if self.option in (EventReservationOption.CHILD, EventReservationOption.CHILD_AND_PARENT):
             data.update(
