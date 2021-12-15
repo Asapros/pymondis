@@ -187,7 +187,7 @@ class Gallery:
 
         @classmethod
         def init_from_dict(cls, data: dict, **kwargs) -> "Photo":
-            """
+            r"""
             Initializuje nową instancję za pomocą danych w dict-cie
 
             :param data: dict, na podstawie którego zostanie stworzona nowa instancja
@@ -262,7 +262,7 @@ class Gallery:
 
     @classmethod
     def init_from_dict(cls, data: dict[str, str | int | bool], **kwargs) -> "Gallery":
-        """
+        r"""
         Initializuje nową instancję za pomocą danych w dict-cie
 
         :param data: dict, na podstawie którego zostanie stworzona nowa instancja
