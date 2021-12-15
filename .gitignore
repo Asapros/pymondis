@@ -3,7 +3,7 @@ __pycache__/
 *.egg-info/
 dist/
 build/
-/clean.bat
+/clear.bat
 /build.bat
 /upload.bat
 /concept
