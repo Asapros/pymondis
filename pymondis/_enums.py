@@ -34,6 +34,7 @@ class CampLevel(Enum):
     """
     NORMAL = "Normal"
     MASTER = "Master"
+    TITAN = "Titan"
 
 
 class World(Enum):
