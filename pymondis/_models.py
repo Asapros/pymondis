@@ -5,19 +5,19 @@ Wszystkie modele są zamro... niemutowa... wg. tłumacza google "niezmienne", "s
 
 Czekajcie na dokumentacje poniższych klas, bo jest puzyno i mi się nie chce
 """
-# TODO dokumentacja
+
 from datetime import datetime
 from typing import AsyncIterator
 
-from attr import attrib, attrs
-from attr.validators import instance_of, optional as v_optional, deep_iterable
+from attr import Factory, attrib, attrs
 from attr.converters import optional as c_optional
+from attr.validators import deep_iterable, instance_of, optional as v_optional
 from httpx import Response
 
+from ._enums import CampLevel, Castle, CrewRole, EventReservationOption, Season, SourcePoll, TShirtSize, World
 from ._exceptions import RevoteError
 from ._http import HTTPClient
-from ._enums import Castle, CampLevel, World, Season, EventReservationOption, CrewRole, TShirtSize, SourcePoll
-from ._util import convert_enum, convert_date, convert_character, convert_empty_string, out_get_date
+from ._util import convert_character, convert_date, convert_empty_string, convert_enum, ero_to_price, out_get_date
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
@@ -554,6 +554,7 @@ class PersonalReservationInfo:
         """
         Dostaje dane o rezerwacji
 
+        :param http: HTTPClient, który będzie użyty zamiast tego podanego w konstruktorze
         :returns: szczegóły rezerwacji
         """
         client = http or self._http
@@ -563,7 +564,32 @@ class PersonalReservationInfo:
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
 class Reservation:
+    """
+    Reprezentuje rezerwacje obozu
+
+    :ivar camp_id: id obozu
+    :ivar child: "główne" dziecko
+    :ivar parent_name: imię rodzica
+    :ivar parent_surname: nazwisko rodzica
+    :ivar nip: NIP rodzica
+    :ivar email: email
+    :ivar phone: numer telefonu
+    :ivar poll: źródło wiedzy o obozach
+    :ivar siblings: lista "pobocznych" dzieci
+    :ivar promo_code: kod promocyjny
+    :ivar _http (param http): HTTPClient, który będzie używany do wysłania rezerwacji
+    """
+
+    @attrs(repr=True, slots=True, frozen=True, hash=True)
     class Child:
+        """
+        Reprezentuje dziecko w rezerwacji
+
+        :ivar name: imię
+        :ivar surname: nazwisko
+        :ivar t_shirt_size: rozmiar koszulki
+        :ivar birthdate: data urodzenia
+        """
         name = attrib(
             type=str,
             validator=instance_of(str)
@@ -582,6 +608,11 @@ class Reservation:
         )
 
         def to_dict(self) -> dict[str, str]:
+            """
+            Zamienia siebie na dict-a
+
+            :returns: instancja klasy w formie dict-a
+            """
             return {
                 "Name":    self.name,
                 "Surname": self.surname,
@@ -645,6 +676,11 @@ class Reservation:
     )
 
     def to_dict(self) -> dict[str, int | dict[str, dict[str, str] | list[dict[str, str]]] | dict[str, str]]:
+        """
+        Zamienia siebie na dict-a
+
+        :returns: instancja klasy w formie dict-a
+        """
         return {
             "SubcampId": self.camp_id,
             "Childs":    {  # English 100
@@ -664,17 +700,46 @@ class Reservation:
             }
         }
 
-    @property
-    def pri(self, **kwargs) -> PersonalReservationInfo:
+    def to_pri(self, **kwargs) -> PersonalReservationInfo:
+        r"""
+        Tworzy instancję PersonalReservationInfo na podstawie siebie
+
+        :param \**kwargs: argumenty podawane dalej do konstruktora
+        :returns: odpowiadające PersonalReservationInfo
+        """
         return PersonalReservationInfo(self.camp_id, self.parent_surname, **{"http": self._http} | kwargs)
 
     async def reserve_camp(self, http: HTTPClient | None = None) -> list[str]:
+        """
+        Rezerwuje obóz na podstawie informacji w tym obiekcie
+
+        :param http: HTTPClient, który będzie użyty zamiast tego podanego w konstruktorze
+        :returns: lista kodów rezerwacji
+        """
         client = http or self._http
         return await client.post_reservations_subscribe(self.to_dict())
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
 class EventReservation:
+    """
+    Reprezentuje rezerwacje wydarzenia (na razie tylko inauguracja)
+
+    :ivar option: opcja rezerwacji
+    :ivar name: imię dziecka
+    :ivar surname: nazwisko dziecka
+    :ivar parent_name: imię rodzica
+    :ivar parent_surname: nazwisko rodzica
+    :ivar parent_reused: czy użyć ``parent_name`` i ``parent_surname`` zamiast ``first_parent_name`` i ``first_parent_surname``
+    :ivar phone: numer telefonu
+    :ivar email: email
+    :ivar first_parent_name: imię pierwszego rodzica do rezerwacji
+    :ivar first_parent_surname: nazwisko pierwszego rodzica do rezerwacji
+    :ivar second_parent_name: imię drugiego rodzica do rezerwacji
+    :ivar second_parent_surname: nazwisko drugiego rodzica do rezerwacji
+    :ivar price: cena rezerwacji (jak ją zmienisz to *chyba* nie zarezerwujesz sobie taniej ;P)
+    :ivar _http (param http): HTTPClient, który będzie używany do wysłania rezerwacji
+    """
     option = attrib(
         type=EventReservationOption,
         converter=convert_enum(EventReservationOption),
@@ -732,34 +797,26 @@ class EventReservation:
             instance_of(str)
         )
     )
+    price = attrib(
+        type=int,
+        validator=v_optional(
+            instance_of(int)
+        ),
+        default=Factory(lambda self: ero_to_price(self.option), takes_self=True)
+    )
     _http = attrib(
         type=HTTPClient | None,
         validator=instance_of(HTTPClient),
         default=None,
         repr=False
     )
-    _price = attrib(  # TODO Factory
-        type=int,
-        validator=v_optional(
-            instance_of(int)
-        ),
-        kw_only=True
-    )
-
-    @property
-    def price(self) -> int:
-        if self._price is None:
-            match self.option:
-                case EventReservationOption.CHILD:
-                    return 450
-                case EventReservationOption.CHILD_AND_ONE_PARENT:
-                    return 900
-                case EventReservationOption.CHILD_AND_TWO_PARENTS:
-                    return 1300
-            raise ValueError("Opcja nie jest jedną z elementów EventReservationOption")
-        return self._price
 
     def to_dict(self) -> dict[str, str | int | bool]:
+        """
+        Zamienia siebie na dict-a
+
+        :returns: instancja klasy w formie dict-a
+        """
         data = {
             "Price":          self.price,
             "Name":           self.name,
@@ -781,12 +838,27 @@ class EventReservation:
         return data
 
     async def reserve_inauguration(self, http: HTTPClient | None):
+        """
+        Rezerwuje inaugurację
+
+        :param http: HTTPClient, który będzie użyty zamiast tego podanego w konstruktorze
+        """
         client = http or self._http
         await client.post_events_inauguration(self.to_dict())
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
 class CrewMember:
+    """
+    Członek kadry (nie biuro ani HY)
+
+    :ivar name: imię
+    :ivar surname: nazwisko
+    :ivar character: imię psorskie (czasem nie wpisane)
+    :ivar position: rola
+    :ivar description: opis
+    :ivar photo: zdjęcie
+    """
     name = attrib(
         type=str,
         validator=instance_of(str)
@@ -818,6 +890,13 @@ class CrewMember:
 
     @classmethod
     def init_from_dict(cls, data: dict[str, str], **kwargs) -> "CrewMember":
+        r"""
+        Initializuje nową instancję za pomocą danych w dict-cie
+
+        :param data: dict, na podstawie którego zostanie stworzona nowa instancja
+        :param \**kwargs: argumenty podane do instancji zdjęcia
+        :returns: instancja klasy
+        """
         return cls(
             name=data["Name"],
             surname=data["Surname"],
@@ -830,6 +909,16 @@ class CrewMember:
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
 class PlebisciteCandidate:
+    """
+    Kandydat plebiscytu
+
+    :ivar name: reprezentująca nazwa (najczęściej nazwisko)
+    :ivar category: kategoria w której startuje
+    :ivar votes: liczba głosów (None jeśli ukryte)
+    :ivar plebiscite: nazwa plebiscytu
+    :ivar voted: czy już dzisiaj wydano głos na tę kategorię z tego urządzenia
+    :ivar _http (param http): HTTPClient, który będzie używany do oddania głosu
+    """
     name = attrib(
         type=str,
         validator=instance_of(str)
@@ -870,6 +959,12 @@ class PlebisciteCandidate:
 
     @classmethod
     def init_from_dict(cls, data: dict[str, str | int | bool | None], **kwargs) -> "PlebisciteCandidate":
+        """
+        Initializuje nową instancję za pomocą danych w dict-cie
+
+        :param data: dict, na podstawie którego zostanie stworzona nowa instancja
+        :returns: instancja klasy
+        """
         return cls(
             name=data["Name"],
             votes=data["Result"],
@@ -880,6 +975,12 @@ class PlebisciteCandidate:
         )
 
     async def vote(self, http: HTTPClient | None = None):
+        """
+        Głosuje na kandydata
+
+        :param http: HTTPClient, który będzie użyty zamiast tego podanego w konstruktorze
+        :raises RevoteError: przed wysłaniem głosu wiadomo, że będzie nieudany, bo jest powtórzony
+        """
         if self.voted:
             raise RevoteError(self.category)
         client = http or self._http

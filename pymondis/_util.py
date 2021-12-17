@@ -10,6 +10,7 @@ from typing import Type
 
 from httpx import HTTPStatusError
 
+from ._enums import EventReservationOption
 from ._exceptions import NoEnumMatchError
 
 
@@ -96,3 +97,21 @@ def convert_enum(enum: Type[Enum]):
         return value if isinstance(value, Enum) else get_enum_element(enum, value)
 
     return inner_enum_converter
+
+
+def ero_to_price(option: EventReservationOption) -> int:
+    """
+    Zamienia EventRezervationOption na jego cenę
+
+    :param option: opcja rezerwacji
+    :returns: cena rezerwacji
+    """
+    match option:
+        case EventReservationOption.CHILD:
+            return 450
+        case EventReservationOption.CHILD_AND_ONE_PARENT:
+            return 900
+        case EventReservationOption.CHILD_AND_TWO_PARENTS:
+            return 1300
+
+    raise ValueError("Opcja rezerwacji wydarzenia nie ma przypisanej ceny")
