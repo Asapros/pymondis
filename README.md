@@ -36,3 +36,5 @@ Aktualna wersja
 ```shell
 pip install git+https://github.com/Asapros/pymondis.git
 ```
+
+[dla google bo sobie nie radzi z indeksowaniem :/]: # (quatromondis api quatromondis python api wrapper)
