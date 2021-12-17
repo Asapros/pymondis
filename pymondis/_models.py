@@ -159,6 +159,8 @@ class Resource:
 class Gallery:
     """
     Reprezentuje galerię z fotorelacji
+    Lista znanych niedziałających galerii (get_photos() wznosi *500 Internal Server Error*):
+        2, 6, 7, 8, 19, 20, 21, 22, 23, 24, 42, 53, 65, 69, 71, 76, 77, 85, 86, 92, 95, 107, 113, 135, 115, 129, 133
 
     :ivar gallery_id: id galerii
     :ivar start: data utworzenia galerii
