@@ -3,9 +3,9 @@ from datetime import datetime
 from unittest import IsolatedAsyncioTestCase
 
 
-class TestHTTPClient(IsolatedAsyncioTestCase):
+class TestClient(IsolatedAsyncioTestCase):
     async def test_import(self):
-        import pymondis
+        pass
 
     async def test_gets(self):
         from pymondis import Client
@@ -33,4 +33,4 @@ class TestHTTPClient(IsolatedAsyncioTestCase):
 
 
 if __name__ == "__main__":
-    TestHTTPClient.run()
+    TestClient.run()
