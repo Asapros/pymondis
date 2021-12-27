@@ -1,5 +1,5 @@
-from ._http import HTTPClient
 from ._enums import Castle
+from ._http import HTTPClient
 from ._models import (
     Camp,
     CrewMember,
@@ -27,7 +27,7 @@ class Client:
         :returns: lista aktualnie dostępnych na stronie obozów
         """
         camps = await self.http.get_camps()
-        return [Camp.init_from_dict(camp) for camp in camps]
+        return [Camp.from_dict(camp) for camp in camps]
 
     async def get_galleries(self, castle: Castle) -> list[Gallery]:
         """
@@ -37,7 +37,7 @@ class Client:
         :returns: lista aktualnych galerii z podanego zamku
         """
         galleries = await self.http.get_images_galleries_castle(castle.value)
-        return [Gallery.init_from_dict(gallery, http=self.http) for gallery in galleries]
+        return [Gallery.from_dict(gallery, http=self.http) for gallery in galleries]
 
     async def get_crew(self) -> list[CrewMember]:
         """
@@ -46,7 +46,7 @@ class Client:
         :returns: lista psorów i kierowników
         """
         crew = await self.http.get_parents_zone_crew()
-        return [CrewMember.init_from_dict(crew_member, http=self.http) for crew_member in crew]
+        return [CrewMember.from_dict(crew_member, http=self.http) for crew_member in crew]
 
     async def get_plebiscite(self, year: int) -> list[PlebisciteCandidate]:
         """
@@ -56,7 +56,7 @@ class Client:
         :returns: lista kandydatów plebiscytu z podanego roku
         """
         candidates = await self.http.get_vote_plebiscite(year)
-        return [PlebisciteCandidate.init_from_dict(candidate, http=self.http) for candidate in candidates]
+        return [PlebisciteCandidate.from_dict(candidate, http=self.http) for candidate in candidates]
 
     async def apply_for_job(self):
         """

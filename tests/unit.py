@@ -1,6 +1,6 @@
 from asyncio import gather
 from datetime import datetime
-from unittest import IsolatedAsyncioTestCase
+from unittest import IsolatedAsyncioTestCase, main
 
 
 class TestClient(IsolatedAsyncioTestCase):
@@ -28,9 +28,9 @@ class TestClient(IsolatedAsyncioTestCase):
     async def test_photos(self):
         from pymondis import Gallery, HTTPClient
         async with HTTPClient() as http:
-            photos = await Gallery(73).get_photos(http)
+            photos = await Gallery(1).get_photos(http)
             await gather(photos[0].normal.get(), photos[1].large.get_stream(chunk_size=32))
 
 
 if __name__ == "__main__":
-    TestClient.run()
+    main()

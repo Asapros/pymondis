@@ -1,12 +1,11 @@
 """
 Przydatne funkcje
 """
-# TODO dokumentacja
 from asyncio import sleep
 from datetime import datetime
 from enum import Enum
 from functools import wraps
-from typing import Type
+from typing import Callable, Type
 
 from httpx import HTTPStatusError
 
@@ -41,13 +40,13 @@ def backoff(function):
     return inner_backoff
 
 
-def get_enum_element(enum: Type[Enum], value: str) -> Enum:
+def enum_from_str(enum: Type[Enum], value: str) -> Enum:
     """
     Zamienia string-a na członka enum
 
     :param enum: enum, w którym szukane będą wartości
     :param value: string zamieniany na członka powyższego enum-a
-    :return: Członek enum
+    :returns: Członek enum
     """
     for element in enum:
         if element.value == value:
@@ -56,55 +55,85 @@ def get_enum_element(enum: Type[Enum], value: str) -> Enum:
         raise NoEnumMatchError(enum, value)
 
 
-def in_get_date(value: str) -> datetime:
+def datetime_from_string(value: str) -> datetime:
+    """
+    Zamienia string-a na datetime (%Y-%m-%dT%H:%M:%S)
+
+    :param value: string do zamiany
+    :returns: datetime ze string-a
+    """
     return datetime.strptime(value, "%Y-%m-%dT%H:%M:%S")
 
 
-def out_get_date(value: datetime) -> str:
+def string_from_datetime(value: datetime) -> str:
+    """
+    Zamienia datetime na string-a (%Y-%m-%dT%H:%M:%S)
+
+    :param value: datetime do zamiany
+    :returns: string z datetime
+    """
     return value.strftime("%Y-%m-%dT%H:%M:%S")
 
 
-def in_get_http_date(value: str) -> datetime:
-    return datetime.strptime(value, "%a, %d %b %Y %H:%M:%S GMT")
-
-
-def out_get_http_date(value: datetime) -> str:
-    return value.strftime("%a, %d %b %Y %H:%M:%S GMT")
-
-
-def convert_date(value: str | datetime) -> datetime:
-    """Zamienia string-a na datetime"""
-    return value if isinstance(value, datetime) else in_get_date(value)
-
-
-def convert_character(string: str) -> str | None:
+def datetime_converter(value: str | datetime) -> datetime:
     """
-    Zamienia 'Nazwa postaci Quatromondis' na None,
-    bo ktoś stwierdził, że taka będzie wartość, jak ktoś nie ma nazwy...
+    Zamienia string-a na datetime (%Y-%m-%dT%H:%M:%S) jeśli to potrzebne
+
+    :param value: string do ewentualnej zamiany lub datetime
+    :returns: datetime ze string-a lub podany datetime
     """
-    return None if string == "Nazwa postaci Quatromondis" else string
+    return value if isinstance(value, datetime) else datetime_from_string(value)
 
 
-def convert_empty_string(string: str) -> str | None:
-    """Zamienia pustego string-a na None"""
-    return string if string else None
-
-
-def convert_enum(enum: Type[Enum]):
-    """Wrapper get_enum_element"""
-
-    def inner_enum_converter(value: str | Enum) -> Enum:
-        return value if isinstance(value, Enum) else get_enum_element(enum, value)
-
-    return inner_enum_converter
-
-
-def ero_to_price(option: EventReservationOption) -> int:
+def optional_character_converter(value: str) -> str | None:
     """
-    Zamienia EventRezervationOption na jego cenę
+    Zamienia string-a "Nazwa postaci Quatromondis" na None
+    (ktoś stwierdził, że taki będzie placeholder dla imion magicznych psorów, którzy ich nie ustawili)
+
+    :param value: string do ewentualnej zamiany
+    :returns: ``None`` jeśli string brzmiał "Nazwa postaci Quatromondis" lub podany string
+    """
+    return None if value == "Nazwa postaci Quatromondis" else value
+
+
+def optional_string_converter(value: str) -> str | None:
+    """
+    Zamienia pustego string-a na ``None``
+    (ktoś stwierdził, że taki będzie placeholder dla braku wycieczek na turnusie)
+
+    :param value: string do ewentualnej zamiany
+    :returns: ``None`` jeśli string był pusty (długość 0) lub podany string
+    """
+    return value if value else None
+
+
+def acquire_enum_converter(enum: Type[Enum]) -> Callable[[str | Enum], Enum]:
+    """
+    Wytwarza funkcję konwertującą string-a na element enum-a
+
+    :param enum: enum, w którym szukany będzie element
+    :returns: funkcja, która konwertuje string-a na element podanego enum-a, jeśli to potrzebne
+    """
+
+    def enum_converter(value: str | Enum) -> Enum:
+        """
+        Zamienia string-a na element enum-a
+
+        :param value: string do ewentualnej zamiany
+        :returns: element enum-a ze string-a lub podany element enum-a
+        """
+        return value if isinstance(value, Enum) else enum_from_str(enum, value)
+
+    return enum_converter
+
+
+def price_from_ero(option: EventReservationOption) -> int:
+    """
+    Zamienia EventReservationOption na odpowiadającą cenę
 
     :param option: opcja rezerwacji
     :returns: cena rezerwacji
+    :raises ValueError: ta opcja nie ma przypisanej ceny
     """
     match option:
         case EventReservationOption.CHILD:

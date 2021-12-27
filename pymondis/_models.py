@@ -1,7 +1,9 @@
 """
 Modele ułatwiające korzystanie z Client-a
-Wszystkie modele są tworzone za pomocą biblioteki `attrs`
-Wszystkie modele są zamro... niemutowa... wg. tłumacza google "niezmienne", "stałe"
+Wszystkie modele są tworzone za pomocą biblioteki ``attrs``
+Wszystkie modele są ang. *frozen* - nie da się zmieniać w nich atrybutów (oprócz tych, które nie są (Resource))
+Wszystkie modele mają określone atrybuty (``__slots__``) co pozwala na szybszy dostęp i oszczędność do 30% pamięci
+
 
 Czekajcie na dokumentacje poniższych klas, bo jest puzyno i mi się nie chce
 """
@@ -10,14 +12,15 @@ from datetime import datetime
 from typing import AsyncIterator
 
 from attr import Factory, attrib, attrs
-from attr.converters import optional as c_optional
-from attr.validators import deep_iterable, instance_of, optional as v_optional
+from attr.converters import optional as optional_converter
+from attr.validators import deep_iterable, instance_of as type_validator, optional as optional_validator
 from httpx import Response
 
 from ._enums import CampLevel, Castle, CrewRole, EventReservationOption, Season, SourcePoll, TShirtSize, World
 from ._exceptions import RevoteError
 from ._http import HTTPClient
-from ._util import convert_character, convert_date, convert_empty_string, convert_enum, ero_to_price, out_get_date
+from ._util import acquire_enum_converter, datetime_converter, optional_character_converter, optional_string_converter, \
+    price_from_ero, string_from_datetime
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
@@ -31,8 +34,8 @@ class ParentSurvey:
     _http = attrib(
         type=HTTPClient | None,
         default=None,
-        validator=v_optional(
-            instance_of(HTTPClient)
+        validator=optional_validator(
+            type_validator(HTTPClient)
         ),
         repr=False
     )
@@ -69,7 +72,7 @@ class ReservationDetails:
     """
 
     @classmethod
-    def init_from_dict(cls, data: dict) -> "ReservationManageDetails":
+    def from_dict(cls, data: dict) -> "ReservationDetails":
         """
         Initializuje nową instancję za pomocą danych w dict-cie
 
@@ -98,21 +101,21 @@ class Resource:
     """
     url = attrib(
         type=str,
-        validator=instance_of(str)
+        validator=type_validator(str)
     )
     _http = attrib(
         type=HTTPClient | None,
         default=None,
-        validator=v_optional(
-            instance_of(HTTPClient)
+        validator=optional_validator(
+            type_validator(HTTPClient)
         ),
         repr=False
     )
     _cache_response = attrib(
         type=Response | None,
         default=None,
-        validator=v_optional(
-            instance_of(Response)
+        validator=optional_validator(
+            type_validator(Response)
         ),
         kw_only=True,
         repr=False
@@ -162,6 +165,7 @@ class Gallery:
     Lista znanych niedziałających galerii (get_photos() wznosi *500 Internal Server Error*):
         2, 6, 7, 8, 19, 20, 21, 22, 23, 24, 42, 53, 65, 69, 71, 76, 77, 85, 86, 92, 95, 107, 113, 135, 115, 129, 133
 
+
     :ivar gallery_id: id galerii
     :ivar start: data utworzenia galerii
     :ivar end: data zakończenia galerii
@@ -180,15 +184,15 @@ class Gallery:
         """
         normal = attrib(
             type=Resource,
-            validator=instance_of(Resource)
+            validator=type_validator(Resource)
         )
         large = attrib(
             type=Resource,
-            validator=instance_of(Resource)
+            validator=type_validator(Resource)
         )
 
         @classmethod
-        def init_from_dict(cls, data: dict, **kwargs) -> "Photo":
+        def from_dict(cls, data: dict, **kwargs) -> "Photo":
             r"""
             Initializuje nową instancję za pomocą danych w dict-cie
 
@@ -203,46 +207,46 @@ class Gallery:
 
     gallery_id = attrib(
         type=int,
-        validator=instance_of(int)
+        validator=type_validator(int)
     )
     start = attrib(
         type=datetime | None,
-        converter=c_optional(
-            convert_date
+        converter=optional_converter(
+            datetime_converter
         ),
-        validator=v_optional(
-            instance_of(datetime)
+        validator=optional_validator(
+            type_validator(datetime)
         ),
         default=None
     )
     end = attrib(
         type=datetime | None,
-        converter=c_optional(
-            convert_date
+        converter=optional_converter(
+            datetime_converter
         ),
-        validator=v_optional(
-            instance_of(datetime)
+        validator=optional_validator(
+            type_validator(datetime)
         ),
         default=None
     )
     name = attrib(
         type=str | None,
-        validator=v_optional(
-            instance_of(str)
+        validator=optional_validator(
+            type_validator(str)
         ),
         default=None
     )
     empty = attrib(
         type=bool | None,
-        validator=v_optional(
-            instance_of(bool)
+        validator=optional_validator(
+            type_validator(bool)
         ),
         default=None
     )
     _http = attrib(
         type=HTTPClient | None,
-        validator=v_optional(
-            instance_of(HTTPClient),
+        validator=optional_validator(
+            type_validator(HTTPClient),
         ),
         default=None,
         repr=False
@@ -254,16 +258,18 @@ class Gallery:
         
         :param http: HTTPClient, który będzie użyty zamiast tego podanego w konstruktorze
         :returns: lista zdjęć
+        :raises HTTPStatusError: *500 Internal Server Error* - prawdopodobnie galeria jeszcze nie istnieje lub została
+            usunięta (lista znanych usuniętych w dokumentacji klasy), nikt nie pomyślał o implementacji *404 Not Found*
         """
         client = http or self._http
         photos = await client.get_images_galleries(self.gallery_id)
         return [
-            self.Photo.init_from_dict(photo, http=client)
+            self.Photo.from_dict(photo, http=client)
             for photo in photos
         ]
 
     @classmethod
-    def init_from_dict(cls, data: dict[str, str | int | bool], **kwargs) -> "Gallery":
+    def from_dict(cls, data: dict[str, str | int | bool], **kwargs) -> "Gallery":
         r"""
         Initializuje nową instancję za pomocą danych w dict-cie
 
@@ -314,19 +320,19 @@ class Camp:
         """
         city = attrib(
             type=str,
-            validator=instance_of(str)
+            validator=type_validator(str)
         )
         one_way_price = attrib(
             type=int,
-            validator=instance_of(int)
+            validator=type_validator(int)
         )
         two_way_price = attrib(
             type=int,
-            validator=instance_of(int)
+            validator=type_validator(int)
         )
 
         @classmethod
-        def init_from_dict(cls, data: dict[str, str | int]) -> "Transport":
+        def from_dict(cls, data: dict[str, str | int]) -> "Transport":
             """
             Initializuje nową instancję za pomocą danych w dict-cie
 
@@ -341,86 +347,86 @@ class Camp:
 
     camp_id = attrib(
         type=int,
-        validator=instance_of(int)
+        validator=type_validator(int)
     )
     code = attrib(
         type=str,
-        validator=instance_of(str)
+        validator=type_validator(str)
     )
     place = attrib(
         type=Castle,
-        converter=convert_enum(Castle),
-        validator=instance_of(Castle)
+        converter=acquire_enum_converter(Castle),
+        validator=type_validator(Castle)
     )
     price = attrib(
         type=int,
-        validator=instance_of(int)
+        validator=type_validator(int)
     )
     promo = attrib(
         type=int | None,
-        validator=v_optional(
-            instance_of(int)
+        validator=optional_validator(
+            type_validator(int)
         )
     )
     active = attrib(
         type=bool,
-        validator=instance_of(bool)
+        validator=type_validator(bool)
     )
     places_left = attrib(
         type=int,
-        validator=instance_of(int)
+        validator=type_validator(int)
     )
     program = attrib(
         type=str,
-        validator=instance_of(str)
+        validator=type_validator(str)
     )
     level = attrib(
         type=CampLevel,
-        converter=convert_enum(CampLevel),
-        validator=instance_of(CampLevel)
+        converter=acquire_enum_converter(CampLevel),
+        validator=type_validator(CampLevel)
     )
     world = attrib(
         type=World,
-        converter=convert_enum(World),
-        validator=instance_of(World)
+        converter=acquire_enum_converter(World),
+        validator=type_validator(World)
     )
     season = attrib(
         type=Season,
-        converter=convert_enum(Season),
-        validator=instance_of(Season)
+        converter=acquire_enum_converter(Season),
+        validator=type_validator(Season)
     )
     trip = attrib(
         type=str | None,
-        converter=convert_empty_string,
-        validator=v_optional(
-            instance_of(str)
+        converter=optional_string_converter,
+        validator=optional_validator(
+            type_validator(str)
         )
     )
     start = attrib(
         type=datetime,
-        converter=convert_date,
-        validator=instance_of(datetime)
+        converter=datetime_converter,
+        validator=type_validator(datetime)
     )
     end = attrib(
         type=datetime,
-        converter=convert_date,
-        validator=instance_of(datetime)
+        converter=datetime_converter,
+        validator=type_validator(datetime)
     )
     ages = attrib(
         type=list[str],
         validator=deep_iterable(
-            instance_of(str)
+            type_validator(str)
         )
     )
     transports = attrib(
         type=list[Transport],
         validator=deep_iterable(
-            instance_of(Transport)
+            type_validator(Transport)
         )
     )
 
     @classmethod
-    def init_from_dict(cls, data: dict[str, str | int | bool | None | list[str | dict[str, str | int]]]) -> "Camp":
+    def from_dict(cls, data: dict[str, str | int | bool | None | list[str | dict[str, str | int]]]) -> "Camp":
         """
         Initializuje nową instancję za pomocą danych w dict-cie
 
@@ -444,7 +450,7 @@ class Camp:
             data["EndDate"],
             data["Ages"],
             [
-                cls.Transport.init_from_dict(transport)
+                cls.Transport.from_dict(transport)
                 for transport in data["Transports"]
             ]
         )
@@ -464,28 +470,28 @@ class Purchaser:
     """
     name = attrib(
         type=str,
-        validator=instance_of(str)
+        validator=type_validator(str)
     )
     surname = attrib(
         type=str,
-        validator=instance_of(str)
+        validator=type_validator(str)
     )
     email = attrib(
         type=str,
-        validator=instance_of(str)
+        validator=type_validator(str)
     )
     phone = attrib(
         type=str,
-        validator=instance_of(str)
+        validator=type_validator(str)
     )
     parcel_locker = attrib(
         type=str,
-        validator=instance_of(str)
+        validator=type_validator(str)
     )
     _http = attrib(
         type=HTTPClient | None,
-        validator=v_optional(
-            instance_of(HTTPClient),
+        validator=optional_validator(
+            type_validator(HTTPClient),
         ),
         default=None,
         repr=False
@@ -526,15 +532,15 @@ class PersonalReservationInfo:
     """
     reservation_id = attrib(
         type=str,
-        validator=instance_of(str)
+        validator=type_validator(str)
     )
     surname = attrib(
         type=str,
-        validator=instance_of(str)
+        validator=type_validator(str)
     )
     _http = attrib(
         type=HTTPClient | None,
-        validator=instance_of(HTTPClient),
+        validator=type_validator(HTTPClient),
         default=None,
         repr=False
     )
@@ -559,7 +565,7 @@ class PersonalReservationInfo:
         """
         client = http or self._http
         details = await client.post_reservations_manage(self.to_dict())
-        return ReservationDetails.init_from_dict(details)
+        return ReservationDetails.from_dict(details)
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
@@ -592,19 +598,19 @@ class Reservation:
         """
         name = attrib(
             type=str,
-            validator=instance_of(str)
+            validator=type_validator(str)
         )
         surname = attrib(
             type=str,
-            validator=instance_of(str)
+            validator=type_validator(str)
         )
         t_shirt_size = attrib(
             type=TShirtSize,
-            validator=instance_of(TShirtSize)
+            validator=type_validator(TShirtSize)
         )
         birthdate = attrib(
             type=datetime,
-            validator=instance_of(datetime)
+            validator=type_validator(datetime)
         )
 
         def to_dict(self) -> dict[str, str]:
@@ -617,59 +623,59 @@ class Reservation:
                 "Name":    self.name,
                 "Surname": self.surname,
                 "Tshirt":  self.t_shirt_size.value,
-                "Dob":     out_get_date(self.birthdate)
+                "Dob":     string_from_datetime(self.birthdate)
             }
 
     camp_id = attrib(
         type=int,
-        validator=instance_of(int)
+        validator=type_validator(int)
     )
     child = attrib(
         type=Child,
-        validator=instance_of(Child)
+        validator=type_validator(Child)
     )
     parent_name = attrib(
         type=str,
-        validator=instance_of(str)
+        validator=type_validator(str)
     )
     parent_surname = attrib(
         type=str,
-        validator=instance_of(str)
+        validator=type_validator(str)
     )
     nip = attrib(
         type=str,
-        validator=instance_of(str)
+        validator=type_validator(str)
     )
     email = attrib(
         type=str,
-        validator=instance_of(str)
+        validator=type_validator(str)
     )
     phone = attrib(
         type=str,
-        validator=instance_of(str)
+        validator=type_validator(str)
     )
     poll = attrib(
         type=SourcePoll,
-        validator=instance_of(SourcePoll)
+        validator=type_validator(SourcePoll)
     )
     siblings = attrib(
         type=list[Child],
         validator=deep_iterable(
-            instance_of(Child)
+            type_validator(Child)
         ),
         factory=list
     )
     promo_code = attrib(
         type=str | None,
-        validator=v_optional(
-            instance_of(str)
+        validator=optional_validator(
+            type_validator(str)
         ),
         default=None
     )
     _http = attrib(
         type=HTTPClient | None,
-        validator=v_optional(
-            instance_of(HTTPClient)
+        validator=optional_validator(
+            type_validator(HTTPClient)
         ),
         default=None,
         repr=False
@@ -742,71 +748,71 @@ class EventReservation:
     """
     option = attrib(
         type=EventReservationOption,
-        converter=convert_enum(EventReservationOption),
-        validator=instance_of(EventReservationOption)
+        converter=acquire_enum_converter(EventReservationOption),
+        validator=type_validator(EventReservationOption)
     )
     name = attrib(
         type=str,
-        validator=instance_of(str)
+        validator=type_validator(str)
     )
     surname = attrib(
         type=str,
-        validator=instance_of(str)
+        validator=type_validator(str)
     )
     parent_name = attrib(
         type=str,
-        validator=instance_of(str)
+        validator=type_validator(str)
     )
     parent_surname = attrib(
         type=str,
-        validator=instance_of(str)
+        validator=type_validator(str)
     )
     parent_reused = attrib(
         type=bool,
-        validator=instance_of(bool)
+        validator=type_validator(bool)
     )
     phone = attrib(
         type=str,
-        validator=instance_of(str)
+        validator=type_validator(str)
     )
     email = attrib(
         type=str,
-        validator=instance_of(str)
+        validator=type_validator(str)
     )
     first_parent_name = attrib(
         type=str | None,
-        validator=v_optional(
-            instance_of(str)
+        validator=optional_validator(
+            type_validator(str)
         )
     )
     first_parent_surname = attrib(
         type=str | None,
-        validator=v_optional(
-            instance_of(str)
+        validator=optional_validator(
+            type_validator(str)
         )
     )
     second_parent_name = attrib(
         type=str | None,
-        validator=v_optional(
-            instance_of(str)
+        validator=optional_validator(
+            type_validator(str)
         )
     )
     second_parent_surname = attrib(
         type=str | None,
-        validator=v_optional(
-            instance_of(str)
+        validator=optional_validator(
+            type_validator(str)
         )
     )
     price = attrib(
         type=int,
-        validator=v_optional(
-            instance_of(int)
+        validator=optional_validator(
+            type_validator(int)
         ),
-        default=Factory(lambda self: ero_to_price(self.option), takes_self=True)
+        default=Factory(lambda self: price_from_ero(self.option), takes_self=True)
     )
     _http = attrib(
         type=HTTPClient | None,
-        validator=instance_of(HTTPClient),
+        validator=type_validator(HTTPClient),
         default=None,
         repr=False
     )
@@ -861,35 +867,35 @@ class CrewMember:
     """
     name = attrib(
         type=str,
-        validator=instance_of(str)
+        validator=type_validator(str)
     )
     surname = attrib(
         type=str,
-        validator=instance_of(str)
+        validator=type_validator(str)
     )
     character = attrib(
         type=str | None,
-        converter=convert_character,
-        validator=v_optional(
-            instance_of(str)
+        converter=optional_character_converter,
+        validator=optional_validator(
+            type_validator(str)
         )
     )
     position = attrib(
         type=CrewRole,
-        converter=convert_enum(CrewRole),
-        validator=instance_of(CrewRole)
+        converter=acquire_enum_converter(CrewRole),
+        validator=type_validator(CrewRole)
     )
     description = attrib(
         type=str,
-        validator=instance_of(str)
+        validator=type_validator(str)
     )
     photo = attrib(
         type=Resource,
-        validator=instance_of(Resource)
+        validator=type_validator(Resource)
     )
 
     @classmethod
-    def init_from_dict(cls, data: dict[str, str], **kwargs) -> "CrewMember":
+    def from_dict(cls, data: dict[str, str], **kwargs) -> "CrewMember":
         r"""
         Initializuje nową instancję za pomocą danych w dict-cie
 
@@ -921,44 +927,44 @@ class PlebisciteCandidate:
     """
     name = attrib(
         type=str,
-        validator=instance_of(str)
+        validator=type_validator(str)
     )
     category = attrib(
         type=str,
-        validator=instance_of(str)
+        validator=type_validator(str)
     )
     votes = attrib(
         type=int | None,
-        validator=v_optional(
-            instance_of(int)
+        validator=optional_validator(
+            type_validator(int)
         ),
         default=None
     )
     plebiscite = attrib(
         type=str | None,
-        validator=v_optional(
-            instance_of(str)
+        validator=optional_validator(
+            type_validator(str)
         ),
         default=None
     )
     voted = attrib(
         type=bool | None,
-        validator=v_optional(
-            instance_of(bool)
+        validator=optional_validator(
+            type_validator(bool)
         ),
         default=None
     )
     _http = attrib(
         type=HTTPClient | None,
-        validator=v_optional(
-            instance_of(HTTPClient)
+        validator=optional_validator(
+            type_validator(HTTPClient)
         ),
         default=None,
         repr=False
     )
 
     @classmethod
-    def init_from_dict(cls, data: dict[str, str | int | bool | None], **kwargs) -> "PlebisciteCandidate":
+    def from_dict(cls, data: dict[str, str | int | bool | None], **kwargs) -> "PlebisciteCandidate":
         """
         Initializuje nową instancję za pomocą danych w dict-cie
 
