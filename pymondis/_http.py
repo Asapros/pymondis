@@ -1,14 +1,14 @@
 from httpx import AsyncClient, Response
 
-from ._util import backoff
 from ._metadata import __title__, __version__
+from ._util import backoff
 
 
 class HTTPClient(AsyncClient):
     """
-    Podstawowa klasa bezpośrednio wykonująca zapytania
-    Zwraca surowe dane
-    Jest używana wewnętrznie przez Client - zalecane jest korzystanie z niego
+    Podstawowa klasa bezpośrednio wykonująca zapytania.
+    Zwraca surowe dane.
+    Jest używana wewnętrznie przez klasę ``Client`` (zalecane jest korzystanie tylko z niego).
     """
     def __init__(
             self,
@@ -17,10 +17,10 @@ class HTTPClient(AsyncClient):
             base_url: str = "https://quatromondisapi.azurewebsites.net/api"
     ):
         """
-        Initializuje instancję klasy HTTPClient
+        Initializuje instancję.
 
-        :param timeout: czas, po którym client zostanie samoistnie rozłączony gdy, nie uzyska odpowiedzi
-        :param base_url: podstawowy url, na który będą kierowane zapytania (z wyjątkiem get_resource)
+        :param timeout: czas, po którym client zostanie samoistnie rozłączony gdy, nie uzyska odpowiedzi.
+        :param base_url: podstawowy url, na który będą kierowane zapytania (z wyjątkiem ``get_resource``).
         """
         super().__init__(timeout=timeout)
         self.base: str = base_url
@@ -34,10 +34,11 @@ class HTTPClient(AsyncClient):
             cache_response: Response | None = None
     ) -> Response:
         """
+        Pobiera dane z serwera z zasobami.
 
-        :param url: url, na którym znajdują się dane - najczęściej hymsresources.blob.core.windows.net
-        :param cache_response: zapisana wcześniej odpowiedź - będzie wykorzystana, gdy dane się nie zmieniły
-        :returns: odpowiedź serwera - świeżą, lub podaną w ``cache_response``
+        :param url: URL, na którym znajdują się dane (najczęściej na ``hymsresources.blob.core.windows.net``).
+        :param cache_response: zapisana wcześniej odpowiedź (będzie wykorzystana, gdy dane się nie zmieniły).
+        :returns: odpowiedź serwera (świeża lub z ``cache_response``).
         """
         headers = {}
         if cache_response is not None:
@@ -55,9 +56,9 @@ class HTTPClient(AsyncClient):
 
     async def get_camps(self) -> list[dict[str, str | int | bool | None | list[str | dict[str, str | int]]]]:
         """
-        Zwraca surowe dane o aktualnych obozach
+        Zwraca dane o aktualnych obozach.
 
-        :returns: lista surowych dict-ów reprezentujących obozy
+        :returns: lista informacji o obozach.
         """
         response = await self.get(
             self.base + "/Camps",
@@ -67,9 +68,9 @@ class HTTPClient(AsyncClient):
 
     async def post_events_inauguration(self, reservation_model: dict):
         """
-        Rezerwuje inaugurację za pomocą surowych danych
+        Rezerwuje inaugurację.
 
-        :param reservation_model: dane o razerwacji w dict-cie
+        :param reservation_model: dane o rezerwacji.
         """
         await self.post(
             self.base + "/Events/Inauguration",
@@ -78,23 +79,23 @@ class HTTPClient(AsyncClient):
 
     async def get_images_galleries_castle(self, castle: str) -> list[dict[str, str | int | bool]]:
         """
-        Dostaje podstawowe dane na temat aktualnych galerii z danego zamku w postaci surowych danych
+        Dostaje podstawowe dane na temat aktualnych galerii z danego zamku.
 
-        :param castle: nazwa zamku, z którego pobierana jest lista galerii
-        :returns: lista surowych dict-ów reprezentujących aktualne galerie z zamku
+        :param castle: nazwa zamku, z którego pobierana jest lista galerii.
+        :returns: lista reprezentująca aktualne galerie z zamku.
         """
         response = await self.get(
-            self.base + "/Images/Galeries/Castle/{}".format(castle),  # 'Galeries' XD
+            self.base + "/Images/Galeries/Castle/{}".format(castle),  # 'Galeries' - English 100
             headers={"Accept": "application/json"})
 
         return response.json()
 
     async def get_images_galleries(self, gallery_id: int) -> list[dict[str, str]]:
         """
-        Dostaje linki do zdjęć znajdujących się w galerii o danym ID
+        Dostaje linki do zdjęć znajdujących się w galerii o danym ID.
 
-        :param gallery_id: numer/ID galerii
-        :returns: surowe dict-y reprezentujące zdjęcia w dwóch jakościach
+        :param gallery_id: numer/ID galerii.
+        :returns: lista linków do zdjęć w dwóch jakościach.
         """
         response = await self.get(
             self.base + "/Images/Galeries/{}".format(gallery_id),  # Znowu 'Galeries'
@@ -104,9 +105,9 @@ class HTTPClient(AsyncClient):
 
     async def post_orders_four_worlds_beginning(self, purchaser: dict):
         """
-        Zamawia książkę „QUATROMONDIS – CZTERY ŚWIATY HUGONA YORCKA. OTWARCIE” za pomocą surowych danych
+        Zamawia książkę „QUATROMONDIS – CZTERY ŚWIATY HUGONA YORCKA. OTWARCIE”.
 
-        :param purchaser: surowe dane o osobie zamawiającej
+        :param purchaser: dane o osobie zamawiającej.
         """
         await self.post(
             self.base + "/Orders/FourWorldsBeginning",
@@ -115,10 +116,10 @@ class HTTPClient(AsyncClient):
 
     async def post_parents_zone_survey(self, survey_hash: str, result: dict):
         """
-        Prawdopodobnie nieobowiązujący już endpoint do jakiejś ankiety
+        Prawdopodobnie nieobowiązujący już endpoint do jakiejś ankiety.
 
-        :param survey_hash: EEE ???
-        :param result: opinia na temat obozu/obozów (?) w postaci dict-a
+        :param survey_hash: ?
+        :param result: opinia na temat obozu/obozów (?).
         """
         await self.post(
             self.base + "/ParentsZone/Survey/{}".format(survey_hash),
@@ -127,9 +128,9 @@ class HTTPClient(AsyncClient):
 
     async def get_parents_zone_crew(self) -> list[dict[str, str]]:
         """
-        Zwraca dane wszystkich psorów i kierowników
+        Zwraca dane wszystkich psorów i kierowników.
 
-        :returns: lista surowych danych o kadrze
+        :returns: lista danych o kadrze
         """
         response = await self.get(
             self.base + "/ParentsZone/Crew",
@@ -140,14 +141,14 @@ class HTTPClient(AsyncClient):
 
     async def post_parents_zone_apply(self):
         """
-        Zgłasza cię do pracy na podstawie surowych danych
+        Zgłasza cię do pracy.
 
         :raises ``NotImplementedError``: zawsze, bo metoda nie jest zaimplementowana -.-
         """
         raise NotImplementedError(
             "Ta metoda nie jest jeszcze zaimplementowana."
             "Zamiast niej możesz skorzystać z tradycyjnego formularza na stronie, śledząc wysyłane zapytania - "
-            "może devtools w tab-ie NETWORK (chrome) czy coś innego (nie znam się)."
+            "może devtools w tab-ie NETWORK czy coś innego (nie znam się)."
             "Pamiętaj żeby nie wysyłać niczego gdy rzeczywiście nie chcesz zgłosić się do pracy."
             "Później otwórz nowy issue (https://github.com/Asapros/pymondis/issues (Implementacja zapytania POST)"
             "i podziel się nagranym zapytaniem (nie zapomnij za cenzurować danych osobowych)"
@@ -157,10 +158,10 @@ class HTTPClient(AsyncClient):
 
     async def post_reservations_subscribe(self, reservation_model: dict) -> list[str]:
         """
-        Rezerwuje obóz na podstawie surowych danych
+        Rezerwuje obóz.
 
-        :param reservation_model: surowe dane o osobie rezerwującej
-        :returns: lista kodów rezerwacji
+        :param reservation_model: dane o osobie rezerwującej.
+        :returns: lista kodów rezerwacji.
         """
         response = await self.post(
             self.base + "/Reservations/Subscribe",
@@ -172,10 +173,10 @@ class HTTPClient(AsyncClient):
 
     async def post_reservations_manage(self, pri: dict[str, str]) -> dict[str, str | bool]:
         """
-        Dostaje surowe dane o rezerwacji na podstawie jej kodu i nazwiska osoby rezerwującej
+        Dostaje dane o rezerwacji na podstawie jej kodu i nazwiska osoby rezerwującej.
 
-        :param pri: kod (ReservationId) i nazwisko (Surname)
-        :returns: dokładniejsze dane o rezerwacji
+        :param pri: kod i nazwisko.
+        :returns: dokładniejsze dane o rezerwacji.
         """
         response = await self.post(
             self.base + "/Reservations/Manage",
@@ -187,10 +188,10 @@ class HTTPClient(AsyncClient):
 
     async def patch_vote(self, category: str, name: str):
         """
-        Głosuje na kandydata plebiscytu
+        Głosuje na kandydata plebiscytu.
 
-        :param category: kategoria, w której startuje kandydat
-        :param name: nazwa kandydata (najczęściej nazwisko)
+        :param category: kategoria, w której startuje kandydat.
+        :param name: nazwa kandydata (najczęściej nazwisko).
         """
         await self.patch(  # A mnie dalej zastanawia, czemu tu patch jest, a nie post...
             self.base + "/Vote/{}/{}".format(category, name)
@@ -198,14 +199,13 @@ class HTTPClient(AsyncClient):
 
     async def get_vote_plebiscite(self, year: int) -> list[dict[str, str | int | bool]]:
         """
-        Zwraca surowe dane o kandydatach plebiscytu z danego roku (bez opisów :/)
+        Zwraca surowe dane o kandydatach plebiscytu z danego roku (bez opisów :/).
 
-        :param year: rok z którego szukani są kandydaci (>= 2018)
-        :returns: lista dict-ów reprezentująca kandydatów
+        :param year: rok, z którego szukani są kandydaci (>= 2019).
+        :returns: lista reprezentująca kandydatów.
         """
         response = await self.get(
-            self.base + "/Vote/plebiscite/{}".format(year),
-            # Jedyny endpoint gdzie słowo w ścieżce nie się zaczyna dużą literą...
+            self.base + "/Vote/plebiscite/{}".format(year),  # Jedyny endpoint nie w PascalCase
             headers={"Accept": "application/json"}
         )
 

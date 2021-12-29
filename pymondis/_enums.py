@@ -3,7 +3,7 @@ from enum import Enum
 
 class CrewRole(Enum):
     """
-    Role członka kadry
+    Role członka kadry.
     """
     PSOR = "Tutor"
     HEADMASTER = "HeadMaster"
@@ -11,7 +11,7 @@ class CrewRole(Enum):
 
 class Castle(Enum):
     """
-    Zamki, w których organizowane są obozy
+    Zamki, w których organizowane są obozy.
     """
     BARANOW = "Zamek w Baranowie Sandomierskim"
     CZOCHA = "Zamek Czocha"
@@ -30,7 +30,9 @@ class Castle(Enum):
 
 class CampLevel(Enum):
     """
-    Poziomy obozów
+    Poziomy obozów.
+
+    :cvar TITAN: starcie tytanów. Tak, z jakiegoś powodu to jest poziom, a nie program/świat (VARIOUS).
     """
     NORMAL = "Normal"
     MASTER = "Master"
@@ -39,13 +41,12 @@ class CampLevel(Enum):
 
 class World(Enum):
     """
-    Światy, w których organizowane są obozy
+    Światy, w których organizowane są obozy.
 
-    :cvar ALL: wszystkie 4 światy
-    :cvar VARIOUS: tematyczne turnusy, np. "Smocza Straż", "Sekret Zamkowej Krypty", "Księżniczki i Rycerze"
+    :cvar ALL: wszystkie 4 światy.
+    :cvar VARIOUS: tematyczne turnusy, np. "Smocza Straż", "Sekret Zamkowej Krypty", "Księżniczki i Rycerze".
     """
-    WIZARDS = "Wizzards"
-    # English 100
+    WIZARDS = "Wizzards"  # English 100
     PATHFINDERS = "Pathfinders"
     RECRUITS = "Recruits"
     SANGUINS = "Sanguins"
@@ -57,7 +58,7 @@ class World(Enum):
 
 class Season(Enum):
     """
-    Pory roku (w czterech światach są tylko dwie :P)
+    Pory roku (w czterech światach są tylko dwie :P).
     """
     SUMMER = "Summer"
     WINTER = "Winter"
@@ -65,7 +66,7 @@ class Season(Enum):
 
 class EventReservationOption(Enum):
     """
-    Opcje rezerwacji inauguracji
+    Opcje rezerwacji inauguracji.
     """
     CHILD = "Tylko dziecko"
     CHILD_AND_ONE_PARENT = "Dziecko + Rodzic"
@@ -74,7 +75,7 @@ class EventReservationOption(Enum):
 
 class TShirtSize(Enum):
     """
-    Rozmiary koszulki
+    Rozmiary koszulki.
     """
     XS = "XS"
     S = "S"
@@ -85,7 +86,7 @@ class TShirtSize(Enum):
 
 class SourcePoll(Enum):
     """
-    Źródło dowiedzenia się o Quatromondis
+    Źródło dowiedzenia się o Quatromondis.
     """
     INTERNET = "Internet"
     SOCIALS = "Socials"

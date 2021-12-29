@@ -1,5 +1,5 @@
 """
-Dane o projekcie - potrzebne w setup.py i w generowaniu User-Agent-a
+Dane o projekcie (potrzebne w setup.py i w generowaniu User-Agent-a).
 """
 
 __title__ = "pymondis"

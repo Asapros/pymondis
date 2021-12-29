@@ -1,11 +1,8 @@
 """
-Modele ułatwiające korzystanie z Client-a
-Wszystkie modele są tworzone za pomocą biblioteki ``attrs``
-Wszystkie modele są ang. *frozen* - nie da się zmieniać w nich atrybutów (oprócz tych, które nie są (Resource))
-Wszystkie modele mają określone atrybuty (``__slots__``) co pozwala na szybszy dostęp i oszczędność do 30% pamięci
-
-
-Czekajcie na dokumentacje poniższych klas, bo jest puzyno i mi się nie chce
+Modele ułatwiające korzystanie z Client-a.
+Wszystkie modele są tworzone za pomocą biblioteki ``attrs``.
+Wszystkie modele są ang. *frozen* - nie da się zmieniać w nich atrybutów (oprócz tych, które nie są (Resource)).
+Wszystkie modele mają określone atrybuty (``__slots__``) co pozwala na szybszy dostęp i oszczędność do 30% pamięci.
 """
 
 from datetime import datetime
@@ -17,10 +14,16 @@ from attr.validators import deep_iterable, instance_of as type_validator, option
 from httpx import Response
 
 from ._enums import CampLevel, Castle, CrewRole, EventReservationOption, Season, SourcePoll, TShirtSize, World
-from ._exceptions import RevoteError
+from ._exceptions import InvalidGalleryError, RevoteError
 from ._http import HTTPClient
-from ._util import acquire_enum_converter, datetime_converter, optional_character_converter, optional_string_converter, \
-    price_from_ero, string_from_datetime
+from ._util import (
+    acquire_enum_converter,
+    datetime_converter,
+    optional_character_converter,
+    optional_string_converter,
+    price_from_ero,
+    string_from_datetime
+)
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
@@ -162,10 +165,8 @@ class Resource:
 class Gallery:
     """
     Reprezentuje galerię z fotorelacji
-    Lista znanych niedziałających galerii (get_photos() wznosi *500 Internal Server Error*):
-        2, 6, 7, 8, 19, 20, 21, 22, 23, 24, 42, 53, 65, 69, 71, 76, 77, 85, 86, 92, 95, 107, 113, 135, 115, 129, 133
 
-
+    :cvar BLACKLIST: tuple id usuniętych/uszkodzonych galerii
     :ivar gallery_id: id galerii
     :ivar start: data utworzenia galerii
     :ivar end: data zakończenia galerii
@@ -204,6 +205,10 @@ class Gallery:
                 normal=Resource(data["AlbumUrl"], **kwargs),
                 large=Resource(data["EnlargedUrl"], **kwargs)
             )
+
+    BLACKLIST: tuple[int, ...] = (
+        2, 6, 7, 8, 19, 20, 21, 22, 23, 24, 42, 53, 65, 69, 71, 76, 77, 85, 86, 92, 95, 107, 113, 135, 115, 129, 133
+    )
 
     gallery_id = attrib(
         type=int,
@@ -252,15 +257,18 @@ class Gallery:
         repr=False
     )
 
-    async def get_photos(self, http: HTTPClient | None = None) -> list[Photo]:
+    async def get_photos(self, http: HTTPClient | None = None, *, ignore_blacklist: bool = False) -> list[Photo]:
         """
         Pobiera wszystkie zdjęcia z galerii
-        
+
         :param http: HTTPClient, który będzie użyty zamiast tego podanego w konstruktorze
+        :param ignore_blacklist: zignorować wystąpienie id galerii na blackliście?
         :returns: lista zdjęć
-        :raises HTTPStatusError: *500 Internal Server Error* - prawdopodobnie galeria jeszcze nie istnieje lub została
-            usunięta (lista znanych usuniętych w dokumentacji klasy), nikt nie pomyślał o implementacji *404 Not Found*
+        :raises InvalidGalleryError: galeria o tym ID najprawdopodobniej nie działa.
+            (Ten wyjątek nie wzniesie się przy ``ignore_blacklist`` ustawionym na ``True``)
         """
+        if not ignore_blacklist and self.gallery_id in self.BLACKLIST:
+            raise InvalidGalleryError(self.gallery_id)
         client = http or self._http
         photos = await client.get_images_galleries(self.gallery_id)
         return [
@@ -309,6 +317,7 @@ class Camp:
     :ivar ages: lista zakresów wiekowych (ciekawe czego...)
     :ivar transports: transporty na miejsce
     """
+
     @attrs(repr=True, slots=True, frozen=True, hash=True)
     class Transport:
         """
@@ -920,9 +929,9 @@ class PlebisciteCandidate:
 
     :ivar name: reprezentująca nazwa (najczęściej nazwisko)
     :ivar category: kategoria w której startuje
-    :ivar votes: liczba głosów (None jeśli ukryte)
+    :ivar votes: liczba głosów (None jeśli są ukryte)
     :ivar plebiscite: nazwa plebiscytu
-    :ivar voted: czy już dzisiaj wydano głos na tę kategorię z tego urządzenia
+    :ivar voted: czy już dzisiaj wydano głos na tę kategorię z tego IP
     :ivar _http (param http): HTTPClient, który będzie używany do oddania głosu
     """
     name = attrib(
@@ -980,14 +989,16 @@ class PlebisciteCandidate:
             **kwargs
         )
 
-    async def vote(self, http: HTTPClient | None = None):
+    async def vote(self, http: HTTPClient | None = None, *, ignore_revote: bool = False):
         """
         Głosuje na kandydata
 
-        :param http: HTTPClient, który będzie użyty zamiast tego podanego w konstruktorze
-        :raises RevoteError: przed wysłaniem głosu wiadomo, że będzie nieudany, bo jest powtórzony
+        :param http: HTTPClient, który będzie użyty zamiast tego podanego w konstruktorze.
+        :param ignore_revote: zignorować, że głos już został oddany w tej kategorii?
+        :raises RevoteError: podjęta została próba zagłosowania drugi raz na tą samą kategorię.
+            (Ten wyjątek nie wzniesie się przy ``ignore_revote`` ustawionym na ``True``)
         """
-        if self.voted:
+        if not ignore_revote and self.voted:
             raise RevoteError(self.category)
         client = http or self._http
         await client.patch_vote(self.category, self.name)
