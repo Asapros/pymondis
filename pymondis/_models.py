@@ -308,7 +308,7 @@ class Camp:
     Reprezentuje obóz.
     
     :ivar camp_id: id obozu.
-    :ivar code: kod obozu ``Z jeśli w zimę + skrót zamku + numer + skrót programu``
+    :ivar code: kod obozu ``Z, jeśli w zimę + skrót zamku + numer + skrót programu``
     :ivar castle: zamek, w którym odbywa się obóz.
     :ivar price: cena obozu.
     :ivar promo: przeceniona cena, jeśli jest.
@@ -822,18 +822,17 @@ class EventReservation:
             type_validator(str)
         )
     )
-    price = attrib(
-        type=int,
-        validator=optional_validator(
-            type_validator(int)
-        ),
-        default=Factory(lambda self: price_from_ero(self.option), takes_self=True)
-    )
     _http = attrib(
         type=HTTPClient | None,
         validator=type_validator(HTTPClient),
         default=None,
         repr=False
+    )
+    price = attrib(
+        type=int,
+        validator=type_validator(int),
+        default=Factory(lambda self: price_from_ero(self.option), takes_self=True),
+        kw_only=True
     )
 
     def to_dict(self) -> dict[str, str | int | bool]:
