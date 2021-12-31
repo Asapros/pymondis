@@ -1,7 +1,7 @@
 """
-Modele ułatwiające korzystanie z Client-a.
+Modele ułatwiające korzystanie z ``Client``a.
 Wszystkie modele są tworzone za pomocą biblioteki ``attrs``.
-Wszystkie modele są ang. *frozen* - nie da się zmieniać w nich atrybutów (oprócz tych, które nie są (Resource)).
+Wszystkie modele są *frozen* - nie da się zmieniać w nich atrybutów (oprócz tych, które nie są (``Resource``)).
 Wszystkie modele mają określone atrybuty (``__slots__``) co pozwala na szybszy dostęp i oszczędność do 30% pamięci.
 """
 
@@ -31,9 +31,9 @@ from ._util import (
 class ParentSurvey:
     """
     Jakaś opinia o obozach, już pewnie nie istnieje na stronach
-    (na web.archive.org też nie ma)
+        (na ``web.archive.org`` też nie ma).
 
-    :ivar _http (param http): HTTPClient, który będzie używany do wysłania ankiety
+    :ivar _http (param http): ``HTTPClient``, który będzie używany do wysłania ankiety.
     """
     _http = attrib(
         type=HTTPClient | None,
@@ -46,25 +46,25 @@ class ParentSurvey:
 
     def to_dict(self) -> dict:
         """
-        Zamienia siebie na dict-a
+        Zamienia siebie na dicta.
 
-        :returns: instancja klasy w formie dict-a
-        :raises NotImplementedError: klasa nie jest zaimplementowana
+        :returns: instancja klasy w formie dicta.
+        :raises NotImplementedError: klasa nie jest zaimplementowana.
         """
         raise NotImplementedError(
-            "Ta klasa jeszcze nie jest do końca zaimplementowana."
-            "Jeśli wiesz gdzie na stronie występuje form do wysłania na /api/ParentsZone/Survey/..."
-            "Możesz otworzyć nowy issue https://github.com/Asapros/pymondis/issues ('Implementacja zapytania POST')"
+            "Ta klasa jeszcze nie jest do końca zaimplementowana. "
+            "Jeśli wiesz gdzie na stronie występuje form do wysłania na /api/ParentsZone/Survey/... "
+            "możesz otworzyć nowy issue https://github.com/Asapros/pymondis/issues ('Implementacja zapytania POST') "
             "i się tym podzielić."
         )
 
     async def submit(self, survey_hash: str, http: HTTPClient | None = None):
         """
-        Wrzuca ankietę
+        Wrzuca ankietę.
 
-        :param survey_hash: Dobre pytanie
-        :param http: HTTPClient, który będzie użyty zamiast tego podanego w konstruktorze
-        :raises HTTPClientLookupError: nie znaleziono otwartego HTTPClient-a.
+        :param survey_hash: Dobre pytanie.
+        :param http: ``HTTPClient``, który będzie użyty zamiast tego podanego w konstruktorze.
+        :raises HTTPClientLookupError: nie znaleziono otwartego ``HTTPClient``a.
         """
         await choose_http(http, self._http).post_parents_zone_survey(survey_hash, self.to_dict())
 
@@ -72,24 +72,24 @@ class ParentSurvey:
 @attrs(repr=True, slots=True, frozen=True, hash=True)
 class ReservationDetails:
     """
-    Dokładniejsze dane o rezerwacji
+    Dokładniejsze dane o rezerwacji.
     """
 
     @classmethod
     def from_dict(cls, data: dict) -> "ReservationDetails":
         """
-        Initializuje nową instancję za pomocą danych w dict-cie
+        Initializuje nową instancję za pomocą danych w dict'cie.
 
-        :param data: dict, na podstawie którego zostanie stworzona nowa instancja
-        :returns: instancja klasy
-        :raises NotImplementedError: klasa nie jest zaimplementowana :(
+        :param data: dict, na podstawie którego zostanie stworzona nowa instancja.
+        :returns: instancja klasy.
+        :raises NotImplementedError: klasa nie jest zaimplementowana.
         """
         raise NotImplementedError(
-            "Ta klasa jeszcze nie jest do końca zaimplementowana."
-            "Jeśli masz zarezerwowany obóz i jego kod to możesz wysłać zapytanie przez"
+            "Ta klasa jeszcze nie jest do końca zaimplementowana. "
+            "Jeśli masz zarezerwowany obóz i jego kod to możesz wysłać zapytanie przez "
             "HTTPClient.post_reservation_manage."
-            "Otwórz nowy issue https://github.com/Asapros/pymondis/issues ('Implementacja zapytania POST')"
-            "i podziel się wynikiem funkcji, nie zapomnij za cenzurować danych osobowych."
+            "Otwórz nowy issue https://github.com/Asapros/pymondis/issues ('Implementacja zapytania POST') "
+            "i podziel się wynikiem funkcji, nie zapomnij za cenzurować danych osobowych. "
             "Możesz też dołączyć do issue przypuszczenia do czego może być każde pole."
         )
 
@@ -97,11 +97,11 @@ class ReservationDetails:
 @attrs(repr=True, slots=True)
 class Resource:
     """
-    Reprezentuje dane, najczęściej zdjęcie z serwera ``hymsresources.blob.core.windows.net``
+    Reprezentuje dane, najczęściej zdjęcie z serwera ``hymsresources.blob.core.windows.net``.
 
-    :ivar url: link do danych
-    :ivar _http (param http): HTTPClient, który będzie używany do pobrania resource-a
-    :ivar _cache_response (keyword cache_response): zapisana ostatnia odpowiedź serwera
+    :ivar url: link do danych.
+    :ivar _http (param http): ``HTTPClient``, który będzie używany do pobrania resource'a.
+    :ivar _cache_response (keyword cache_response): zapisana ostatnia odpowiedź serwera.
     """
     url = attrib(
         type=str,
@@ -135,15 +135,15 @@ class Resource:
             http: HTTPClient | None = None
     ) -> AsyncIterator[bytes]:
         """
-        Otwiera strumień danych z linku
+        Otwiera strumień danych z linku.
 
-        :param use_cache: czy użyć ostatniej zapisanej odpowiedzi, gdy dane nie zmieniły się?
-        :param update_cache: czy zapisać odpowiedź do użycia później przez ``use_cache``
-        :param chunk_size: wielkość fragmentu iterowanych danych (w bajtach)
-        :param http: HTTPClient, który będzie użyty zamiast tego podanego w konstruktorze
+        :param use_cache: użyć ostatniej zapisanej odpowiedzi, gdy dane się nie zmieniły?
+        :param update_cache: zapisać odpowiedź do użycia później przez ``use_cache``?
+        :param chunk_size: wielkość fragmentu iterowanych danych (w bajtach).
+        :param http: ``HTTPClient``, który będzie użyty zamiast tego podanego w konstruktorze.
         :returns: asynchroniczny iterator po fragmentach danych przesłanych przez serwer
         """
-        # Spoiler - Lock-i działają wolniej w tym przypadku...
+        # Lock-i działają wolniej w tym przypadku...
         response = await choose_http(http, self._http).get_resource(
             self.url, self._cache_response if use_cache else None
         )
@@ -153,16 +153,16 @@ class Resource:
 
     async def get(self, use_cache: bool = True, update_cache: bool = True, http: HTTPClient | None = None) -> bytes:
         """
-        Całkowicie pobiera dane z linku
+        Całkowicie pobiera dane z linku.
 
-        :param use_cache: czy użyć ostatniej zapisanej odpowiedzi, gdy dane nie zmieniły się?
-        :param update_cache: czy zapisać odpowiedź do użycia później przez ``use_cache``
-        :param http: HTTPClient, który będzie użyty zamiast tego podanego w konstruktorze
-        :returns: dane po całkowitym ich pobraniu przez ``get_stream``
+        :param use_cache: użyć ostatniej zapisanej odpowiedzi, gdy dane się nie zmieniły?
+        :param update_cache: zapisać odpowiedź do użycia później przez ``use_cache``?
+        :param http: ``HTTPClient``, który będzie użyty zamiast tego podanego w konstruktorze.
+        :returns: dane po całkowitym ich pobraniu przez ``get_stream``.
         """
         iterator: AsyncIterator = await self.get_stream(use_cache, update_cache, None, http)
         content: bytes = b""
-        async for chunk in iterator:
+        async for chunk in iterator:  # TODO dane są przecież w jednym kawałku, można je od razu returnować
             content += chunk
         return content
 
@@ -170,24 +170,24 @@ class Resource:
 @attrs(repr=True, slots=True, frozen=True, hash=True)
 class Gallery:
     """
-    Reprezentuje galerię z fotorelacji
+    Reprezentuje galerię z fotorelacji.
 
-    :cvar BLACKLIST: tuple id usuniętych/uszkodzonych galerii
-    :ivar gallery_id: id galerii
-    :ivar start: data utworzenia galerii
-    :ivar end: data zakończenia galerii
-    :ivar name: nazwa galerii - ``Z jeśli zima + skrót zamku + numer``
+    :cvar BLACKLIST: tuple ID usuniętych/uszkodzonych galerii.
+    :ivar gallery_id: id galerii.
+    :ivar start: data utworzenia galerii.
+    :ivar end: data zakończenia galerii.
+    :ivar name: nazwa galerii - ``Z jeśli zima + skrót zamku + numer``.
     :ivar empty: czy galeria jest pusta?
-    :ivar _http (param http): HTTPClient, który będzie używany do pobrania zdjęć z galerii
+    :ivar _http (param http): ``HTTPClient``, który będzie używany do pobrania zdjęć z galerii
     """
 
     @attrs(repr=True, slots=True, frozen=True, hash=True)
     class Photo:
         """
-        Reprezentuje zdjęcie z fotorelacji w dwóch rozdzielczościach
+        Reprezentuje zdjęcie z fotorelacji w dwóch rozdzielczościach.
 
-        :ivar normal: zdjęcie słabej rozdzielczości
-        :ivar large: zdjęcie
+        :ivar normal: zdjęcie słabej rozdzielczości.
+        :ivar large: zdjęcie.
         """
         normal = attrib(
             type=Resource,
@@ -201,11 +201,11 @@ class Gallery:
         @classmethod
         def from_dict(cls, data: dict, **kwargs) -> "Photo":
             r"""
-            Initializuje nową instancję za pomocą danych w dict-cie
+            Initializuje nową instancję za pomocą danych w dict'cie.
 
-            :param data: dict, na podstawie którego zostanie stworzona nowa instancja
-            :param \**kwargs: dodatkowe argumenty, przekazywane dalej do konstruktorów ``Resource``
-            :returns: instancja klasy
+            :param data: dict, na podstawie którego zostanie stworzona nowa instancja.
+            :param \**kwargs: dodatkowe argumenty, przekazywane dalej do konstruktorów ``Resource``.
+            :returns: instancja klasy.
             """
             return cls(
                 normal=Resource(data["AlbumUrl"], **kwargs),
@@ -265,14 +265,14 @@ class Gallery:
 
     async def get_photos(self, http: HTTPClient | None = None, *, ignore_blacklist: bool = False) -> list[Photo]:
         """
-        Pobiera wszystkie zdjęcia z galerii
+        Pobiera wszystkie zdjęcia z galerii.
 
-        :param http: HTTPClient, który będzie użyty zamiast tego podanego w konstruktorze
-        :param ignore_blacklist: zignorować wystąpienie id galerii na blackliście?
-        :returns: lista zdjęć
+        :param http: HTTPClient, który będzie użyty zamiast tego podanego w konstruktorze.
+        :param ignore_blacklist: zignorować wystąpienie id galerii na blakliście?
+        :returns: lista zdjęć.
         :raises InvalidGalleryError: galeria o tym ID najprawdopodobniej nie działa.
             (Ten wyjątek nie wzniesie się przy ``ignore_blacklist`` ustawionym na ``True``)
-        :raises HTTPClientLookupError: nie znaleziono otwartego HTTPClient-a.
+        :raises HTTPClientLookupError: nie znaleziono otwartego ``HTTPClient``a.
         """
         if not ignore_blacklist and self.gallery_id in self.BLACKLIST:
             raise InvalidGalleryError(self.gallery_id)
@@ -286,11 +286,11 @@ class Gallery:
     @classmethod
     def from_dict(cls, data: dict[str, str | int | bool], **kwargs) -> "Gallery":
         r"""
-        Initializuje nową instancję za pomocą danych w dict-cie
+        Initializuje nową instancję za pomocą danych w dict'cie.
 
-        :param data: dict, na podstawie którego zostanie stworzona nowa instancja
-        :param \**kwargs: dodatkowe argumenty, przekazywane dalej do konstruktora
-        :returns: instancja klasy
+        :param data: dict, na podstawie którego zostanie stworzona nowa instancja.
+        :param \**kwargs: dodatkowe argumenty, przekazywane dalej do konstruktora.
+        :returns: instancja klasy.
         """
         return cls(
             gallery_id=data["Id"],
@@ -305,35 +305,35 @@ class Gallery:
 @attrs(repr=True, slots=True, frozen=True, hash=True)
 class Camp:
     """
-    Reprezentuje obóz
+    Reprezentuje obóz.
     
-    :ivar camp_id: id obozu
-    :ivar code: kod obozu ``Z jeśli w zimę + skrót zamku + numer turnusu + skrót programu``
-    :ivar castle: zamek w którym się odbywa
-    :ivar price: cena
-    :ivar promo: przeceniona cena, jeśli jest
-    :ivar active: aktywny? (nie ma listy rezerwowej)
+    :ivar camp_id: id obozu.
+    :ivar code: kod obozu ``Z jeśli w zimę + skrót zamku + numer + skrót programu``
+    :ivar castle: zamek, w którym odbywa się obóz.
+    :ivar price: cena obozu.
+    :ivar promo: przeceniona cena, jeśli jest.
+    :ivar active: aktywny? (nie ma listy rezerwowej).
     :ivar places_left: ilość pozostałych miejsc,
         ale jest zepsuta, bo czasem anomalnie rośnie i potrafi wynosić 75, kiedy jest lista rezerwowa...
-    :ivar program: temat turnusu
-    :ivar level: poziom (normal albo master)
-    :ivar world: świat
-    :ivar season: pora roku
-    :ivar trip: opisy wycieczki/wycieczek jeśli jakieś są
-    :ivar start: data rozpoczęcia
-    :ivar end: data zakończenia
-    :ivar ages: lista zakresów wiekowych (ciekawe czego...)
-    :ivar transports: transporty na miejsce
+    :ivar program: temat turnusu.
+    :ivar level: poziom.
+    :ivar world: świat.
+    :ivar season: pora roku.
+    :ivar trip: opisy wycieczki/wycieczek, jeśli jakieś są.
+    :ivar start: data rozpoczęcia.
+    :ivar end: data zakończenia.
+    :ivar ages: lista zakresów wiekowych (ciekawe czego?).
+    :ivar transports: transporty na miejsce.
     """
 
     @attrs(repr=True, slots=True, frozen=True, hash=True)
     class Transport:
         """
-        Reprezentuje transport na obóz
+        Reprezentuje transport na obóz.
 
-        :ivar city: nazwa miasta
-        :ivar one_way_price: cena w jedną stronę
-        :ivar two_way_price: cena w dwie strony
+        :ivar city: nazwa miasta.
+        :ivar one_way_price: cena w jedną stronę.
+        :ivar two_way_price: cena w dwie strony.
         """
         city = attrib(
             type=str,
@@ -351,10 +351,10 @@ class Camp:
         @classmethod
         def from_dict(cls, data: dict[str, str | int]) -> "Transport":
             """
-            Initializuje nową instancję za pomocą danych w dict-cie
+            Initializuje nową instancję za pomocą danych w dict'cie.
 
-            :param data: dict, na podstawie którego zostanie stworzona nowa instancja
-            :returns: instancja klasy
+            :param data: dict, na podstawie którego zostanie stworzona nowa instancja.
+            :returns: instancja klasy.
             """
             return cls(
                 city=data["City"],
@@ -445,10 +445,10 @@ class Camp:
     @classmethod
     def from_dict(cls, data: dict[str, str | int | bool | None | list[str | dict[str, str | int]]]) -> "Camp":
         """
-        Initializuje nową instancję za pomocą danych w dict-cie
+        Initializuje nową instancję za pomocą danych w dict'cie
 
-        :param data: dict, na podstawie którego zostanie stworzona nowa instancja
-        :returns: instancja klasy
+        :param data: dict, na podstawie którego zostanie stworzona nowa instancja.
+        :returns: instancja klasy.
         """
         return cls(
             data["Id"],
@@ -476,14 +476,14 @@ class Camp:
 @attrs(repr=True, slots=True, frozen=True, hash=True)
 class Purchaser:
     """
-    Reprezentuje osobę kupującą
+    Reprezentuje osobę kupującą.
 
-    :ivar name: imię
-    :ivar surname: nazwisko
-    :ivar email: email
-    :ivar phone: numer telefonu
-    :ivar parcel_locker: dane o paczkomacie
-    :ivar _http (param http): HTTPClient, który będzie używany do wysłania zamówienia
+    :ivar name: imię.
+    :ivar surname: nazwisko.
+    :ivar email: email.
+    :ivar phone: numer telefonu.
+    :ivar parcel_locker: dane o paczkomacie.
+    :ivar _http (param http): ``HTTPClient``, który będzie używany do wysłania zamówienia.
     """
     name = attrib(
         type=str,
@@ -516,9 +516,9 @@ class Purchaser:
 
     def to_dict(self) -> dict[str, str]:
         """
-        Zamienia siebie na dict-a
+        Zamienia siebie na dicta.
 
-        :returns: instancja klasy w formie dict-a
+        :returns: instancja klasy w formie dicta.
         """
         return {
             "Name":         self.name,
@@ -530,10 +530,10 @@ class Purchaser:
 
     async def order_fwb(self, http: HTTPClient | None = None):
         """
-        Zamawia książkę „QUATROMONDIS – CZTERY ŚWIATY HUGONA YORCKA. OTWARCIE”
+        Zamawia książkę „QUATROMONDIS – CZTERY ŚWIATY HUGONA YORCKA. OTWARCIE”.
 
-        :param http: HTTPClient, który będzie użyty zamiast tego podanego w konstruktorze
-        :raises HTTPClientLookupError: nie znaleziono otwartego HTTPClient-a.
+        :param http: ``HTTPClient``, który będzie użyty zamiast tego podanego w konstruktorze.
+        :raises HTTPClientLookupError: nie znaleziono otwartego ``HTTPClient``a.
         """
         await choose_http(http, self._http).post_orders_four_worlds_beginning(self.to_dict())
 
@@ -541,11 +541,11 @@ class Purchaser:
 @attrs(repr=True, slots=True, frozen=True, hash=True)
 class PersonalReservationInfo:
     """
-    Dane, za których pomocą możesz uzyskać szczegóły rezerwacji (kod, nazwisko)
+    Dane, za których pomocą możesz uzyskać szczegóły rezerwacji (kod i nazwisko).
 
-    :ivar reservation_id: kod rezerwacji
-    :ivar surname: nazwisko zarezerwowanego
-    :ivar _http (param http): HTTPClient, który będzie używany do dostania szczegółów rezerwacji
+    :ivar reservation_id: kod rezerwacji.
+    :ivar surname: nazwisko zarezerwowanego.
+    :ivar _http (param http): ``HTTPClient``, który będzie używany do dostania szczegółów rezerwacji
     """
     reservation_id = attrib(
         type=str,
@@ -564,9 +564,9 @@ class PersonalReservationInfo:
 
     def to_dict(self) -> dict[str, str]:
         """
-        Zamienia siebie na dict-a
+        Zamienia siebie na dicta.
 
-        :returns: instancja klasy w formie dict-a
+        :returns: instancja klasy w formie dicta.
         """
         return {
             "ReservationId": self.reservation_id,
@@ -575,11 +575,11 @@ class PersonalReservationInfo:
 
     async def get_details(self, http: HTTPClient | None = None) -> ReservationDetails:
         """
-        Dostaje dane o rezerwacji
+        Dostaje dane o rezerwacji,
 
-        :param http: HTTPClient, który będzie użyty zamiast tego podanego w konstruktorze
-        :returns: szczegóły rezerwacji
-        :raises HTTPClientLookupError: nie znaleziono otwartego HTTPClient-a.
+        :param http: ``HTTPClient``, który będzie użyty zamiast tego podanego w konstruktorze.
+        :returns: szczegóły rezerwacji.
+        :raises HTTPClientLookupError: nie znaleziono otwartego ``HTTPClient``a.
         """
         return ReservationDetails.from_dict(
             await choose_http(http, self._http).post_reservations_manage(self.to_dict())
@@ -589,30 +589,30 @@ class PersonalReservationInfo:
 @attrs(repr=True, slots=True, frozen=True, hash=True)
 class Reservation:
     """
-    Reprezentuje rezerwacje obozu
+    Reprezentuje rezerwacje obozu.
 
-    :ivar camp_id: id obozu
-    :ivar child: "główne" dziecko
-    :ivar parent_name: imię rodzica
-    :ivar parent_surname: nazwisko rodzica
-    :ivar nip: NIP rodzica
-    :ivar email: email
-    :ivar phone: numer telefonu
-    :ivar poll: źródło wiedzy o obozach
-    :ivar siblings: lista "pobocznych" dzieci
-    :ivar promo_code: kod promocyjny
-    :ivar _http (param http): HTTPClient, który będzie używany do wysłania rezerwacji
+    :ivar camp_id: id obozu.
+    :ivar child: "główne" dziecko.
+    :ivar parent_name: imię rodzica.
+    :ivar parent_surname: nazwisko rodzica.
+    :ivar nip: NIP rodzica.
+    :ivar email: email.
+    :ivar phone: numer telefonu.
+    :ivar poll: źródło wiedzy o obozach.
+    :ivar siblings: lista "pobocznych" dzieci.
+    :ivar promo_code: kod promocyjny.
+    :ivar _http (param http): ``HTTPClient``, który będzie używany do wysłania rezerwacji.
     """
 
     @attrs(repr=True, slots=True, frozen=True, hash=True)
     class Child:
         """
-        Reprezentuje dziecko w rezerwacji
+        Reprezentuje dziecko w rezerwacji.
 
-        :ivar name: imię
-        :ivar surname: nazwisko
-        :ivar t_shirt_size: rozmiar koszulki
-        :ivar birthdate: data urodzenia
+        :ivar name: imię.
+        :ivar surname: nazwisko.
+        :ivar t_shirt_size: rozmiar koszulki.
+        :ivar birthdate: data urodzenia.
         """
         name = attrib(
             type=str,
@@ -633,9 +633,9 @@ class Reservation:
 
         def to_dict(self) -> dict[str, str]:
             """
-            Zamienia siebie na dict-a
+            Zamienia siebie na dicta.
 
-            :returns: instancja klasy w formie dict-a
+            :returns: instancja klasy w formie dicta.
             """
             return {
                 "Name":    self.name,
@@ -701,9 +701,9 @@ class Reservation:
 
     def to_dict(self) -> dict[str, int | dict[str, dict[str, str] | list[dict[str, str]]] | dict[str, str]]:
         """
-        Zamienia siebie na dict-a
+        Zamienia siebie na dicta.
 
-        :returns: instancja klasy w formie dict-a
+        :returns: instancja klasy w formie dicta.
         """
         return {
             "SubcampId": self.camp_id,
@@ -726,19 +726,19 @@ class Reservation:
 
     def to_pri(self, **kwargs) -> PersonalReservationInfo:
         r"""
-        Tworzy instancję PersonalReservationInfo na podstawie siebie
+        Tworzy instancję ``PersonalReservationInfo`` na podstawie siebie.
 
-        :param \**kwargs: argumenty podawane dalej do konstruktora
-        :returns: odpowiadające PersonalReservationInfo
+        :param \**kwargs: argumenty podawane dalej do konstruktora.
+        :returns: odpowiadające ``PersonalReservationInfo``.
         """
         return PersonalReservationInfo(self.camp_id, self.parent_surname, **{"http": self._http} | kwargs)
 
     async def reserve_camp(self, http: HTTPClient | None = None) -> list[str]:
         """
-        Rezerwuje obóz na podstawie informacji w tym obiekcie
+        Rezerwuje obóz na podstawie informacji w tym obiekcie.
 
-        :param http: HTTPClient, który będzie użyty zamiast tego podanego w konstruktorze
-        :returns: lista kodów rezerwacji
+        :param http: ``HTTPClient``, który będzie użyty zamiast tego podanego w konstruktorze.
+        :returns: lista kodów rezerwacji.
         """
         return await choose_http(http, self._http).post_reservations_subscribe(self.to_dict())
 
@@ -746,23 +746,24 @@ class Reservation:
 @attrs(repr=True, slots=True, frozen=True, hash=True)
 class EventReservation:
     """
-    Reprezentuje rezerwacje wydarzenia (na razie tylko inauguracja)
+    Reprezentuje rezerwacje wydarzenia (tylko inauguracja)
 
-    :ivar option: opcja rezerwacji
-    :ivar name: imię dziecka
-    :ivar surname: nazwisko dziecka
-    :ivar parent_name: imię rodzica
-    :ivar parent_surname: nazwisko rodzica
+    :ivar option: opcja rezerwacji.
+    :ivar name: imię dziecka.
+    :ivar surname: nazwisko dziecka.
+    :ivar parent_name: imię rodzica.
+    :ivar parent_surname: nazwisko rodzica.
     :ivar parent_reused: czy użyć ``parent_name`` i ``parent_surname`` zamiast
-        ``first_parent_name`` i ``first_parent_surname``
-    :ivar phone: numer telefonu
-    :ivar email: email
-    :ivar first_parent_name: imię pierwszego rodzica do rezerwacji
-    :ivar first_parent_surname: nazwisko pierwszego rodzica do rezerwacji
-    :ivar second_parent_name: imię drugiego rodzica do rezerwacji
-    :ivar second_parent_surname: nazwisko drugiego rodzica do rezerwacji
-    :ivar price: cena rezerwacji (jak ją zmienisz to *chyba* nie zarezerwujesz sobie taniej ;P)
-    :ivar _http (param http): HTTPClient, który będzie używany do wysłania rezerwacji
+        ``first_parent_name`` i ``first_parent_surname``?
+    :ivar phone: numer telefonu.
+    :ivar email: email.
+    :ivar first_parent_name: imię pierwszego rodzica do rezerwacji.
+    :ivar first_parent_surname: nazwisko pierwszego rodzica do rezerwacji.
+    :ivar second_parent_name: imię drugiego rodzica do rezerwacji.
+    :ivar second_parent_surname: nazwisko drugiego rodzica do rezerwacji.
+    ։ivar third_parent_name։ imię trzeciego rodzica do rezerwa... Dobra, żartuję.
+    :ivar price: cena rezerwacji (jak ją zmienisz to *chyba* nie zarezerwujesz sobie taniej ;P).
+    :ivar _http (param http): ``HTTPClient``, który będzie używany do wysłania rezerwacji.
     """
     option = attrib(
         type=EventReservationOption,
@@ -837,9 +838,9 @@ class EventReservation:
 
     def to_dict(self) -> dict[str, str | int | bool]:
         """
-        Zamienia siebie na dict-a
+        Zamienia siebie na dicta.
 
-        :returns: instancja klasy w formie dict-a
+        :returns: instancja klasy w formie dicta.
         """
         data = {
             "Price":          self.price,
@@ -851,6 +852,7 @@ class EventReservation:
             "Phone":          self.phone,
             "Email":          self.email
         }
+        # TODO co się tutaj wydarzyło
         if self.option in (EventReservationOption.CHILD, EventReservationOption.CHILD_AND_PARENT):
             data.update(
                 {"FirstParentName": self.first_parent_name, "FirstParentSurname": self.first_parent_surname}
@@ -863,10 +865,10 @@ class EventReservation:
 
     async def reserve_inauguration(self, http: HTTPClient | None):
         """
-        Rezerwuje inaugurację
+        Rezerwuje inaugurację.
 
-        :param http: HTTPClient, który będzie użyty zamiast tego podanego w konstruktorze
-        :raises HTTPClientLookupError: nie znaleziono otwartego HTTPClient-a.
+        :param http: ``HTTPClient``, który będzie użyty zamiast tego podanego w konstruktorze.
+        :raises HTTPClientLookupError: nie znaleziono otwartego ``HTTPClient``a.
         """
         await choose_http(http, self._http).post_events_inauguration(self.to_dict())
 
@@ -874,14 +876,14 @@ class EventReservation:
 @attrs(repr=True, slots=True, frozen=True, hash=True)
 class CrewMember:
     """
-    Członek kadry (nie biuro ani HY)
+    Członek kadry (nie biuro ani HY).
 
-    :ivar name: imię
-    :ivar surname: nazwisko
-    :ivar character: imię psorskie (czasem nie wpisane)
-    :ivar position: rola
-    :ivar description: opis
-    :ivar photo: zdjęcie
+    :ivar name: imię.
+    :ivar surname: nazwisko.
+    :ivar character: imię psorskie (czasem nie wpisane).
+    :ivar position: rola.
+    :ivar description: opis.
+    :ivar photo: zdjęcie.
     """
     name = attrib(
         type=str,
@@ -915,11 +917,11 @@ class CrewMember:
     @classmethod
     def from_dict(cls, data: dict[str, str], **kwargs) -> "CrewMember":
         r"""
-        Initializuje nową instancję za pomocą danych w dict-cie
+        Initializuje nową instancję za pomocą danych w dict'cie.
 
-        :param data: dict, na podstawie którego zostanie stworzona nowa instancja
-        :param \**kwargs: argumenty podane do instancji zdjęcia
-        :returns: instancja klasy
+        :param data: dict, na podstawie którego zostanie stworzona nowa instancja.
+        :param \**kwargs: argumenty podane do instancji zdjęcia.
+        :returns: instancja klasy.
         """
         return cls(
             name=data["Name"],
@@ -934,14 +936,14 @@ class CrewMember:
 @attrs(repr=True, slots=True, frozen=True, hash=True)
 class PlebisciteCandidate:
     """
-    Kandydat plebiscytu
+    Kandydat plebiscytu.
 
-    :ivar name: reprezentująca nazwa (najczęściej nazwisko)
-    :ivar category: kategoria w której startuje
-    :ivar votes: liczba głosów (None jeśli są ukryte)
-    :ivar plebiscite: nazwa plebiscytu
-    :ivar voted: czy już dzisiaj wydano głos na tę kategorię z tego IP
-    :ivar _http (param http): HTTPClient, który będzie używany do oddania głosu
+    :ivar name: reprezentująca nazwa (najczęściej nazwisko).
+    :ivar category: kategoria, w której startuje.
+    :ivar votes: liczba głosów (``None`` jeśli są ukryte).
+    :ivar plebiscite: nazwa plebiscytu.
+    :ivar voted: czy już dzisiaj wydano głos na tę kategorię z tego IP.
+    :ivar _http (param http): ``HTTPClient``, który będzie używany do oddania głosu.
     """
     name = attrib(
         type=str,
@@ -984,10 +986,10 @@ class PlebisciteCandidate:
     @classmethod
     def from_dict(cls, data: dict[str, str | int | bool | None], **kwargs) -> "PlebisciteCandidate":
         """
-        Initializuje nową instancję za pomocą danych w dict-cie
+        Initializuje nową instancję za pomocą danych w dict'cie.
 
-        :param data: dict, na podstawie którego zostanie stworzona nowa instancja
-        :returns: instancja klasy
+        :param data: dict, na podstawie którego zostanie stworzona nowa instancja.
+        :returns: instancja klasy.
         """
         return cls(
             name=data["Name"],
@@ -1000,12 +1002,12 @@ class PlebisciteCandidate:
 
     async def vote(self, http: HTTPClient | None = None, *, ignore_revote: bool = False):
         """
-        Głosuje na kandydata
+        Głosuje na kandydata.
 
-        :param http: HTTPClient, który będzie użyty zamiast tego podanego w konstruktorze.
+        :param http: ``HTTPClient``, który będzie użyty zamiast tego podanego w konstruktorze.
         :param ignore_revote: zignorować, że głos już został oddany w tej kategorii?
         :raises RevoteError: podjęta została próba zagłosowania drugi raz na tą samą kategorię.
-            (Ten wyjątek nie wzniesie się przy ``ignore_revote`` ustawionym na ``True``)
+            (Ten wyjątek nie wzniesie się przy ``ignore_revote`` ustawionym na ``True``).
         """
         if not ignore_revote and self.voted:
             raise RevoteError(self.category)
