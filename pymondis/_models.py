@@ -18,6 +18,7 @@ from ._exceptions import InvalidGalleryError, RevoteError
 from ._http import HTTPClient
 from ._util import (
     acquire_enum_converter,
+    choose_http,
     datetime_converter,
     optional_character_converter,
     optional_string_converter,
@@ -63,9 +64,9 @@ class ParentSurvey:
 
         :param survey_hash: Dobre pytanie
         :param http: HTTPClient, który będzie użyty zamiast tego podanego w konstruktorze
+        :raises HTTPClientLookupError: nie znaleziono otwartego HTTPClient-a.
         """
-        client = http or self._http
-        await client.post_parents_zone_survey(survey_hash, self.to_dict())
+        await choose_http(http, self._http).post_parents_zone_survey(survey_hash, self.to_dict())
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
@@ -93,7 +94,7 @@ class ReservationDetails:
         )
 
 
-@attrs(repr=True, slots=True, eq=False)
+@attrs(repr=True, slots=True)
 class Resource:
     """
     Reprezentuje dane, najczęściej zdjęcie z serwera ``hymsresources.blob.core.windows.net``
@@ -112,6 +113,7 @@ class Resource:
         validator=optional_validator(
             type_validator(HTTPClient)
         ),
+        eq=False,
         repr=False
     )
     _cache_response = attrib(
@@ -121,11 +123,17 @@ class Resource:
             type_validator(Response)
         ),
         kw_only=True,
+        eq=False,
         repr=False
     )
 
-    async def get_stream(self, use_cache: bool = True, update_cache: bool = True, chunk_size: int | None = 1024,
-                         http: HTTPClient | None = None) -> AsyncIterator[bytes]:
+    async def get_stream(
+            self,
+            use_cache: bool = True,
+            update_cache: bool = True,
+            chunk_size: int | None = 1024,
+            http: HTTPClient | None = None
+    ) -> AsyncIterator[bytes]:
         """
         Otwiera strumień danych z linku
 
@@ -136,8 +144,9 @@ class Resource:
         :returns: asynchroniczny iterator po fragmentach danych przesłanych przez serwer
         """
         # Spoiler - Lock-i działają wolniej w tym przypadku...
-        client = http or self._http
-        response = await client.get_resource(self.url, self._cache_response if use_cache else None)
+        response = await choose_http(http, self._http).get_resource(
+            self.url, self._cache_response if use_cache else None
+        )
         if update_cache:
             self._cache_response = response
         return response.aiter_bytes(chunk_size)
@@ -151,14 +160,11 @@ class Resource:
         :param http: HTTPClient, który będzie użyty zamiast tego podanego w konstruktorze
         :returns: dane po całkowitym ich pobraniu przez ``get_stream``
         """
-        iterator = await self.get_stream(use_cache, update_cache, None, http)
+        iterator: AsyncIterator = await self.get_stream(use_cache, update_cache, None, http)
         content: bytes = b""
         async for chunk in iterator:
             content += chunk
         return content
-
-    def __eq__(self, other: "Resource") -> bool:
-        return self.url == other.url
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
@@ -266,10 +272,11 @@ class Gallery:
         :returns: lista zdjęć
         :raises InvalidGalleryError: galeria o tym ID najprawdopodobniej nie działa.
             (Ten wyjątek nie wzniesie się przy ``ignore_blacklist`` ustawionym na ``True``)
+        :raises HTTPClientLookupError: nie znaleziono otwartego HTTPClient-a.
         """
         if not ignore_blacklist and self.gallery_id in self.BLACKLIST:
             raise InvalidGalleryError(self.gallery_id)
-        client = http or self._http
+        client = choose_http(http, self._http)
         photos = await client.get_images_galleries(self.gallery_id)
         return [
             self.Photo.from_dict(photo, http=client)
@@ -306,7 +313,8 @@ class Camp:
     :ivar price: cena
     :ivar promo: przeceniona cena, jeśli jest
     :ivar active: aktywny? (nie ma listy rezerwowej)
-    :ivar places_left: ilość pozostałych miejsc, ale jest zepsuta, bo czasem anomalnie rośnie i potrafi wynosić 75, kiedy jest lista rezerwowa...
+    :ivar places_left: ilość pozostałych miejsc,
+        ale jest zepsuta, bo czasem anomalnie rośnie i potrafi wynosić 75, kiedy jest lista rezerwowa...
     :ivar program: temat turnusu
     :ivar level: poziom (normal albo master)
     :ivar world: świat
@@ -525,9 +533,9 @@ class Purchaser:
         Zamawia książkę „QUATROMONDIS – CZTERY ŚWIATY HUGONA YORCKA. OTWARCIE”
 
         :param http: HTTPClient, który będzie użyty zamiast tego podanego w konstruktorze
+        :raises HTTPClientLookupError: nie znaleziono otwartego HTTPClient-a.
         """
-        client = http or self._http
-        await client.post_orders_four_worlds_beginning(self.to_dict())
+        await choose_http(http, self._http).post_orders_four_worlds_beginning(self.to_dict())
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
@@ -571,10 +579,11 @@ class PersonalReservationInfo:
 
         :param http: HTTPClient, który będzie użyty zamiast tego podanego w konstruktorze
         :returns: szczegóły rezerwacji
+        :raises HTTPClientLookupError: nie znaleziono otwartego HTTPClient-a.
         """
-        client = http or self._http
-        details = await client.post_reservations_manage(self.to_dict())
-        return ReservationDetails.from_dict(details)
+        return ReservationDetails.from_dict(
+            await choose_http(http, self._http).post_reservations_manage(self.to_dict())
+        )
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
@@ -731,8 +740,7 @@ class Reservation:
         :param http: HTTPClient, który będzie użyty zamiast tego podanego w konstruktorze
         :returns: lista kodów rezerwacji
         """
-        client = http or self._http
-        return await client.post_reservations_subscribe(self.to_dict())
+        return await choose_http(http, self._http).post_reservations_subscribe(self.to_dict())
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
@@ -745,7 +753,8 @@ class EventReservation:
     :ivar surname: nazwisko dziecka
     :ivar parent_name: imię rodzica
     :ivar parent_surname: nazwisko rodzica
-    :ivar parent_reused: czy użyć ``parent_name`` i ``parent_surname`` zamiast ``first_parent_name`` i ``first_parent_surname``
+    :ivar parent_reused: czy użyć ``parent_name`` i ``parent_surname`` zamiast
+        ``first_parent_name`` i ``first_parent_surname``
     :ivar phone: numer telefonu
     :ivar email: email
     :ivar first_parent_name: imię pierwszego rodzica do rezerwacji
@@ -857,9 +866,9 @@ class EventReservation:
         Rezerwuje inaugurację
 
         :param http: HTTPClient, który będzie użyty zamiast tego podanego w konstruktorze
+        :raises HTTPClientLookupError: nie znaleziono otwartego HTTPClient-a.
         """
-        client = http or self._http
-        await client.post_events_inauguration(self.to_dict())
+        await choose_http(http, self._http).post_events_inauguration(self.to_dict())
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
@@ -1000,8 +1009,7 @@ class PlebisciteCandidate:
         """
         if not ignore_revote and self.voted:
             raise RevoteError(self.category)
-        client = http or self._http
-        await client.patch_vote(self.category, self.name)
+        await choose_http(http, self._http).patch_vote(self.category, self.name)
 
 
 Photo = Gallery.Photo

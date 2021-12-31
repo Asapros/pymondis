@@ -26,6 +26,18 @@ class InvalidGalleryError(Exception):
 
     def __init__(self, gallery_id: int):
         super().__init__(
-            "Galeria o ID {} jest usunięta/uszkodzona."
+            "Galeria o ID {} jest usunięta/uszkodzona. "
             "Próba pobrania zdjęć prawdopodobnie zakończy się statusem 500 Internal Server Error.".format(gallery_id)
+        )
+
+
+class HTTPClientLookupError(Exception):
+    """
+    Wznoszone, gdy model nie posiada otartego HTTPClient-a do wykonania zapytania
+    """
+
+    def __init__(self):
+        super().__init__(
+            "Model nie znalazł żadnego otwartego HTTPClient-a. "
+            "Jeśli nie podasz go w konstruktorze, musisz bezpośrednio w metodzie."
         )

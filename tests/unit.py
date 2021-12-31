@@ -29,7 +29,7 @@ class TestClient(IsolatedAsyncioTestCase):
         from pymondis import Gallery, HTTPClient
         async with HTTPClient() as http:
             photos = await Gallery(1).get_photos(http)
-            await gather(photos[0].normal.get(), photos[1].large.get_stream(chunk_size=32))
+            await gather(photos[0].normal.get(), photos[-1].large.get_stream(chunk_size=32))
 
 
 if __name__ == "__main__":

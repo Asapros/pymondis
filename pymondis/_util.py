@@ -7,10 +7,10 @@ from enum import Enum
 from functools import wraps
 from typing import Callable, Type
 
-from httpx import HTTPStatusError
+from httpx import AsyncClient, HTTPStatusError
 
 from ._enums import EventReservationOption
-from ._exceptions import NoEnumMatchError
+from ._exceptions import HTTPClientLookupError, NoEnumMatchError
 
 
 def backoff(function):
@@ -21,6 +21,7 @@ def backoff(function):
     :returns: wrap-owana funkcja.
     :raises HTTPStatusError: nie udało się pomyślnie wykonać zapytania (kod błędu 400-499 lub 3 próby zakończone >= 500).
     """
+
     @wraps(function)
     async def inner_backoff(*args, **kwargs):
         tries: int = 0
@@ -38,6 +39,14 @@ def backoff(function):
             tries += 1
 
     return inner_backoff
+
+
+def choose_http(*http_clients: AsyncClient | None):
+    for http_client in http_clients:
+        if http_client is None or http_client.is_closed:
+            continue
+        return http_client
+    raise HTTPClientLookupError()
 
 
 def enum_from_str(enum: Type[Enum], value: str) -> Enum:
