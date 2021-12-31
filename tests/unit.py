@@ -5,7 +5,8 @@ from unittest import IsolatedAsyncioTestCase, main
 
 class TestClient(IsolatedAsyncioTestCase):
     async def test_import(self):
-        pass
+        import pymondis  # A ja sobie włączyłem usuwanie niepotrzebnych importów przed commit-em, dlatego tu "pass" było
+        _ = pymondis.__all__
 
     async def test_gets(self):
         from pymondis import Client
