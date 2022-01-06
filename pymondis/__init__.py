@@ -1,6 +1,6 @@
 from ._client import Client
 from ._enums import CampLevel, Castle, CrewRole, EventReservationOption, Season, SourcePoll, TShirtSize, World
-from ._exceptions import NoEnumMatchError, RevoteError
+from ._exceptions import HTTPClientLookupError, InvalidGalleryError, RevoteError
 from ._http import HTTPClient
 from ._metadata import __author__, __description__, __license__, __title__, __version__
 from ._models import (
@@ -42,7 +42,8 @@ __all__ = (
     "TShirtSize",
     "SourcePoll",
     "RevoteError",
-    "NoEnumMatchError",
+    "InvalidGalleryError",
+    "HTTPClientLookupError",
     "Resource",
     "Gallery",
     "Camp",
