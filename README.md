@@ -1,5 +1,5 @@
 # PYMONDIS
-<img src="banner.png" alt="Banner pymondis" style="width: 100%;"/>
+<img src="banner.png" alt="(Banner pymondis)" style="width: 100%;"/>
 
 Nieoficjalny wrapper api [Quatromondis](https://quatromondis.pl/) w python-ie
 
@@ -7,8 +7,8 @@ Nieoficjalny wrapper api [Quatromondis](https://quatromondis.pl/) w python-ie
 - Wszystkie zapytania są asynchroniczne z użyciem `httpx`
 - Fajnie obiekty z użyciem `attrs` (nawet *repr()* działa!)
 - Ponawianie nieudanych zapytań
-- Epicka składnia python-a 3.10 (dlatego na razie można korzystać tylko z 3.10)
-- Cache-owanie zdjęć
+- Epicka składnia pythona 3.10 (dlatego na razie można korzystać tylko z 3.10)
+- Cache'owanie zdjęć
 - Type-hint-y
 
 ## Co możesz zrobić
@@ -37,4 +37,4 @@ Aktualna wersja
 pip install git+https://github.com/Asapros/pymondis.git
 ```
 
-[dla google bo sobie nie radzi z indeksowaniem :/]: # (quatromondis api quatromondis python api wrapper)
+[dla google bo sobie dalej nie radzi z indeksowaniem :/]: # (quatromondis api quatromondis python api wrapper nieoficjalny)
