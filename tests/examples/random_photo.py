@@ -1,13 +1,14 @@
 """
-Pokazuje losowe zdjęcie z losowej galerii z losowego zamku (Może trochę zająć - 3 nie-równoległe zapytania)
+Pokazuje losowe zdjęcie z losowej galerii z losowego zamku (Może trochę zająć - 3 synchroniczne zapytania).
 """
 
 from asyncio import run
-from random import choice
 from io import BytesIO
+from random import choice
 
-from pymondis import Client, Castle
 from PIL import Image  # pip install pillow
+
+from pymondis import Castle, Client
 
 
 async def main():

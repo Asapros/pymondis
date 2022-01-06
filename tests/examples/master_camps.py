@@ -1,11 +1,11 @@
 """
-Pokazuje listę master-skich obozów od najmniejszej ceny
+Pokazuje listę masterskich obozów od najmniejszej ceny.
 """
 
 
 from asyncio import run
 
-from pymondis import Client, CampLevel
+from pymondis import CampLevel, Client
 
 
 async def main():

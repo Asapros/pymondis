@@ -1,14 +1,15 @@
 """
-Pokazuje imię i zdjęcie psora, który ma najwięcej wystąpień wylosowanej litery w opisie (wiem, bardzo kreatywnie)
+Pokazuje imię i zdjęcie psora, który ma najwięcej wystąpień wylosowanej litery w opisie (wiem, bardzo kreatywnie).
 """
 
 from asyncio import run
-from string import ascii_lowercase
-from random import choice
 from io import BytesIO
+from random import choice
+from string import ascii_lowercase
+
+from PIL import Image  # pip install pillow
 
 from pymondis import Client, CrewRole
-from PIL import Image  # pip install pillow
 
 
 async def main():

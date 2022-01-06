@@ -1,5 +1,5 @@
 """
-Pokazuję dane wylosowanego kandydata tegorocznego plebiscytu i na niego głosuje
+Pokazuję dane wylosowanego kandydata tegorocznego plebiscytu i na niego głosuje.
 """
 
 from asyncio import run

@@ -26,7 +26,7 @@ class TestClient(IsolatedAsyncioTestCase):
         async with Client() as client:
             await gather(*[client.get_galleries(castle) for castle in Castle])
 
-    async def test_photos(self):
+    async def test_photos(self):  # TODO do httpclient
         from pymondis import Gallery, HTTPClient
         async with HTTPClient() as http:
             photos = await Gallery(1).get_photos(http)
