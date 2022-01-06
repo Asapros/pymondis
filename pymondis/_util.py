@@ -3,14 +3,12 @@ Przydatne funkcje.
 """
 from asyncio import sleep
 from datetime import datetime
-from enum import Enum
 from functools import wraps
-from typing import Callable, Type
 
-from httpx import AsyncClient, HTTPStatusError
+from httpx import AsyncClient, ConnectError, HTTPStatusError
 
 from ._enums import EventReservationOption
-from ._exceptions import HTTPClientLookupError, NoEnumMatchError
+from ._exceptions import HTTPClientLookupError
 
 
 def backoff(function):
@@ -32,10 +30,14 @@ def backoff(function):
                 return response
             except HTTPStatusError as error:
                 if error.response.status_code < 500:
-                    if error.response.status_code >= 400 or tries > 2:
+                    if error.response.status_code >= 400 or tries >= 3:
                         raise
-                    return response
-                await sleep(tries + 0.5)
+                    return error.response
+            except ConnectError:
+                if tries >= 3:
+                    raise
+
+            await sleep(tries + 0.5)
             tries += 1
 
     return inner_backoff
@@ -47,21 +49,6 @@ def choose_http(*http_clients: AsyncClient | None):
             continue
         return http_client
     raise HTTPClientLookupError()
-
-
-def enum_from_str(enum: Type[Enum], value: str) -> Enum:
-    """
-    Zamienia string-a na członka enum.
-
-    :param enum: enum, w którym szukane będą wartości.
-    :param value: string zamieniany na członka powyższego enum-a.
-    :returns: członek enum-a.
-    """
-    for element in enum:
-        if element.value == value:
-            return element
-    else:
-        raise NoEnumMatchError(enum, value)
 
 
 def datetime_from_string(value: str) -> datetime:
@@ -114,26 +101,6 @@ def optional_string_converter(value: str) -> str | None:
     :returns: ``None`` jeśli string był pusty (długość 0) lub podany string.
     """
     return value if value else None
-
-
-def acquire_enum_converter(enum: Type[Enum]) -> Callable[[str | Enum], Enum]:
-    """
-    Wytwarza funkcję konwertującą string-a na element enum-a.
-
-    :param enum: enum, w którym szukany będzie element.
-    :returns: funkcja, która konwertuje string-a na element podanego enum-a, jeśli to potrzebne.
-    """
-
-    def enum_converter(value: str | Enum) -> Enum:
-        """
-        Zamienia string-a na element enum-a.
-
-        :param value: string do ewentualnej zamiany.
-        :returns: element enum-a ze string-a lub podany element enum-a.
-        """
-        return value if isinstance(value, Enum) else enum_from_str(enum, value)
-
-    return enum_converter
 
 
 def price_from_ero(option: EventReservationOption) -> int:

@@ -17,7 +17,6 @@ from ._enums import CampLevel, Castle, CrewRole, EventReservationOption, Season,
 from ._exceptions import InvalidGalleryError, RevoteError
 from ._http import HTTPClient
 from ._util import (
-    acquire_enum_converter,
     choose_http,
     datetime_converter,
     optional_character_converter,
@@ -372,7 +371,7 @@ class Camp:
     )
     place = attrib(
         type=Castle,
-        converter=acquire_enum_converter(Castle),
+        converter=Castle,
         validator=type_validator(Castle)
     )
     price = attrib(
@@ -399,17 +398,17 @@ class Camp:
     )
     level = attrib(
         type=CampLevel,
-        converter=acquire_enum_converter(CampLevel),
+        converter=CampLevel,
         validator=type_validator(CampLevel)
     )
     world = attrib(
         type=World,
-        converter=acquire_enum_converter(World),
+        converter=World,
         validator=type_validator(World)
     )
     season = attrib(
         type=Season,
-        converter=acquire_enum_converter(Season),
+        converter=Season,
         validator=type_validator(Season)
     )
     trip = attrib(
@@ -767,7 +766,7 @@ class EventReservation:
     """
     option = attrib(
         type=EventReservationOption,
-        converter=acquire_enum_converter(EventReservationOption),
+        converter=EventReservationOption,
         validator=type_validator(EventReservationOption)
     )
     name = attrib(
@@ -901,7 +900,7 @@ class CrewMember:
     )
     position = attrib(
         type=CrewRole,
-        converter=acquire_enum_converter(CrewRole),
+        converter=CrewRole,
         validator=type_validator(CrewRole)
     )
     description = attrib(

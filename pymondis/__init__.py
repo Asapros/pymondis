@@ -18,10 +18,8 @@ from ._models import (
     Transport
 )
 from ._util import (
-    acquire_enum_converter,
     datetime_converter,
     datetime_from_string,
-    enum_from_str,
     optional_character_converter,
     optional_string_converter,
     string_from_datetime
@@ -57,11 +55,9 @@ __all__ = (
     "Photo",
     "Transport",
     "Child",
-    "enum_from_str",
     "string_from_datetime",
     "datetime_from_string",
     "datetime_converter",
     "optional_character_converter",
     "optional_string_converter",
-    'acquire_enum_converter'
 )
