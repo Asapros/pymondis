@@ -1,7 +1,7 @@
 # PYMONDIS
 <img src="banner.png" alt="(Banner pymondis)" style="width: 100%;"/>
 
-Nieoficjalny wrapper api [Quatromondis](https://quatromondis.pl/) w python-ie
+Nieoficjalny wrapper api [Quatromondis](https://quatromondis.pl/) w pythonie
 
 ## Fajne rzeczy
 - Wszystkie zapytania są asynchroniczne z użyciem `httpx`
@@ -36,5 +36,17 @@ Aktualna wersja
 ```shell
 pip install git+https://github.com/Asapros/pymondis.git
 ```
+
+## UWAGA!
+*DZIEJĄ SIĘ DZIWNE RZECZY, ZNIKA WSZYSTKO Z GALERII I DZIEJĄ SIĘ RZECZY NIESTWORZONE*
+
+Przez początek zimowego sezonu galerie się zepsuły. Jest wiele anomalii:
+1. Są pokazane galerie z przyszłości
+2. Galerie z przyszłości czasem mają w sobie zdjęcia XD (tu zawsze występuje błąd z punktu 4 i czasem z 3)
+3. Niektóre galerie, które mają 0 zdjęć, nie są ``empty``
+4. Serwer API czasem odsyła do nieistniejących zdjęć na serwerze z zasobami
+  (Oczywiście przywala ci ``404 The specified blob does not exist.`` Jakby to była twoja wina)
+
+
 
 [dla google bo sobie dalej nie radzi z indeksowaniem :/]: # (quatromondis api quatromondis python api wrapper nieoficjalny)
