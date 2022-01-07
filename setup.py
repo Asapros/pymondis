@@ -1,5 +1,6 @@
 from setuptools import setup
-from pymondis import __version__, __license__, __description__, __title__, __author__
+
+from pymondis import __author__, __description__, __license__, __title__, __version__
 
 with open("README.md", encoding="utf-8") as readme_file:
     README = readme_file.read()
@@ -24,7 +25,7 @@ setup(
     install_requires=REQUIREMENTS,
     python_requires=">=3.10",
     classifiers=[
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 4 - Beta",
         "Natural Language :: Polish",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3.10",
