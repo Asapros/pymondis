@@ -1,3 +1,5 @@
+from typing import NoReturn
+
 from ._enums import Castle
 from ._http import HTTPClient
 from ._models import (
@@ -14,6 +16,7 @@ class Client:
 
     :ivar http: ``HTTPClient`` używany do wykonywania zapytań.
     """
+
     def __init__(self, http: HTTPClient | None = None):
         """
         Initializuje instancję Client-a.
@@ -72,3 +75,10 @@ class Client:
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         return await self.http.__aexit__(exc_type, exc_val, exc_tb)
+
+    def __enter__(self) -> NoReturn:
+        self.http.__enter__()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        return self.http.__aexit__(exc_type, exc_val, exc_tb)

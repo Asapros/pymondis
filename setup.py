@@ -1,6 +1,6 @@
 from setuptools import setup
 
-from pymondis import __author__, __description__, __license__, __title__, __version__
+from pymondis import metadata
 
 with open("README.md", encoding="utf-8") as readme_file:
     README = readme_file.read()
@@ -9,17 +9,17 @@ with open("requirements.txt", "r") as requirements_file:
     REQUIREMENTS = requirements_file.read().splitlines()
 
 setup(
-    name=__title__,
+    name=metadata.__title__,
     url="https://github.com/Asapros/pymondis",
     project_urls={
         "Tracker": "https://github.com/Asapros/pymondis/issues",
         "Source": "https://github.com/Asapros/pymondis"
     },
-    version=__version__,
+    version=metadata.__version__,
     packages=("pymondis",),
-    license=__license__,
-    author=__author__,
-    description=__description__,
+    license=metadata.__license__,
+    author=metadata.__author__,
+    description=metadata.__description__,
     long_description=README,
     long_description_content_type="text/markdown",
     install_requires=REQUIREMENTS,

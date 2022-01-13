@@ -1,7 +1,7 @@
 """
 Przydatne funkcje.
 """
-from asyncio import sleep
+from asyncio import run, sleep
 from datetime import datetime
 from functools import wraps
 
@@ -15,9 +15,10 @@ def backoff(function):
     """
     Dekorator funkcji wykonujących zapytania.
 
-    :param function: funkcja do wrap-owania.
-    :returns: wrap-owana funkcja.
+    :param function: funkcja do wrapowania.
+    :returns: wrapowana funkcja.
     :raises HTTPStatusError: nie udało się pomyślnie wykonać zapytania (kod błędu 400-499 lub 3 próby zakończone >= 500).
+    :raises ConnectError: problem z połączeniem.
     """
 
     @wraps(function)
@@ -43,6 +44,19 @@ def backoff(function):
     return inner_backoff
 
 
+def synchronize(function):
+    """
+    Dekorator do zamiany funkcji asynchronicznych na synchroniczne.
+
+    :param function: funkcja do wrapowania.
+    :returns: wrapowana funkcja.
+    """
+    @wraps(function)
+    def inner_synchronize(*args, **kwargs):
+        return run(function(*args, **kwargs))
+    return inner_synchronize
+
+
 def choose_http(*http_clients: AsyncClient | None):
     for http_client in http_clients:
         if http_client is None or http_client.is_closed:
@@ -53,17 +67,17 @@ def choose_http(*http_clients: AsyncClient | None):
 
 def datetime_from_string(value: str) -> datetime:
     """
-    Zamienia string-a na datetime (%Y-%m-%dT%H:%M:%S).
+    Zamienia stringa na datetime (%Y-%m-%dT%H:%M:%S).
 
     :param value: string do zamiany.
-    :returns: datetime ze string-a.
+    :returns: datetime ze stringa.
     """
     return datetime.strptime(value, "%Y-%m-%dT%H:%M:%S")
 
 
 def string_from_datetime(value: datetime) -> str:
     """
-    Zamienia datetime na string-a (%Y-%m-%dT%H:%M:%S).
+    Zamienia datetime na stringa (%Y-%m-%dT%H:%M:%S).
 
     :param value: datetime do zamiany.
     :returns: string z datetime.
@@ -73,10 +87,10 @@ def string_from_datetime(value: datetime) -> str:
 
 def datetime_converter(value: str | datetime) -> datetime:
     """
-    Zamienia string-a na datetime (%Y-%m-%dT%H:%M:%S) jeśli to potrzebne.
+    Zamienia stringa na datetime (%Y-%m-%dT%H:%M:%S) jeśli to potrzebne.
 
     :param value: string do ewentualnej zamiany lub datetime.
-    :returns: datetime ze string-a lub podany datetime.
+    :returns: datetime ze stringa lub podany datetime.
     """
     return value if isinstance(value, datetime) else datetime_from_string(value)
 
@@ -94,7 +108,7 @@ def optional_character_converter(value: str) -> str | None:
 
 def optional_string_converter(value: str) -> str | None:
     """
-    Zamienia pustego string-a na ``None``.
+    Zamienia pustego stringa na ``None``.
     (ktoś stwierdził, że taki będzie placeholder dla braku wycieczek na turnusie).
 
     :param value: string do ewentualnej zamiany.

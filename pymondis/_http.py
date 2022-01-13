@@ -1,7 +1,9 @@
+from typing import NoReturn
+
 from httpx import AsyncClient, Response
 
-from ._metadata import __title__, __version__
 from ._util import backoff
+from .metadata import __title__ as project_name, __version__ as project_version
 
 
 class HTTPClient(AsyncClient):
@@ -24,7 +26,7 @@ class HTTPClient(AsyncClient):
         """
         super().__init__(timeout=timeout)
         self.base: str = base_url
-        self.headers = {"User-Agent": "{}/{}".format(__title__, __version__)}
+        self.headers = {"User-Agent": "{}/{}".format(project_name, project_version)}
 
         self.request = backoff(self.request)
 
@@ -214,3 +216,9 @@ class HTTPClient(AsyncClient):
     async def __aenter__(self) -> "HTTPClient":  # Type-hinting
         await super().__aenter__()
         return self
+
+    def __enter__(self) -> NoReturn:
+        raise RuntimeError("'with' nie można używać na HTTPClient'cie. Może chodziło ci o 'async with'?")
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        return
