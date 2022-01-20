@@ -31,7 +31,7 @@ class Client:
 
         :returns: lista aktualnie dostępnych na stronie obozów.
         """
-        camps = await self.http.get_camps()
+        camps = await self.http.get_api_camps()
         return [Camp.from_dict(camp) for camp in camps]
 
     async def get_galleries(self, castle: Castle) -> list[Gallery]:
@@ -41,7 +41,7 @@ class Client:
         :param castle: zamek, z którego są szukane galerie.
         :returns: lista aktualnych galerii z podanego zamku.
         """
-        galleries = await self.http.get_images_galleries_castle(castle.value)
+        galleries = await self.http.get_api_images_galleries_castle(castle.value)
         return [Gallery.from_dict(gallery, http=self.http) for gallery in galleries]
 
     async def get_crew(self) -> list[CrewMember]:
@@ -50,7 +50,7 @@ class Client:
 
         :returns: lista psorów i kierowników.
         """
-        crew = await self.http.get_parents_zone_crew()
+        crew = await self.http.get_api_parentszone_crew()
         return [CrewMember.from_dict(crew_member, http=self.http) for crew_member in crew]
 
     async def get_plebiscite(self, year: int) -> list[PlebisciteCandidate]:
@@ -60,14 +60,14 @@ class Client:
         :param year: rok, z którego szukani są kandydaci plebiscytu.
         :returns: lista kandydatów plebiscytu z podanego roku.
         """
-        candidates = await self.http.get_vote_plebiscite(year)
+        candidates = await self.http.get_api_vote_plebiscite(year)
         return [PlebisciteCandidate.from_dict(candidate, http=self.http) for candidate in candidates]
 
     async def apply_for_job(self):
         """
         Zgłasza aplikację o pracę.
         """
-        await self.http.post_parents_zone_apply()
+        await self.http.post_api_parentszone_apply()
 
     async def __aenter__(self) -> "Client":
         await self.http.__aenter__()

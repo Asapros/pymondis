@@ -65,7 +65,7 @@ class ParentSurvey:
         :param http: ``HTTPClient``, który będzie użyty zamiast tego podanego w konstruktorze.
         :raises HTTPClientLookupError: nie znaleziono otwartego ``HTTPClient``a.
         """
-        await choose_http(http, self._http).post_parents_zone_survey(survey_hash, self.to_dict())
+        await choose_http(http, self._http).post_api_parentszone_survey(survey_hash, self.to_dict())
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
@@ -276,7 +276,7 @@ class Gallery:
         if not ignore_blacklist and self.gallery_id in self.BLACKLIST:
             raise InvalidGalleryError(self.gallery_id)
         client = choose_http(http, self._http)
-        photos = await client.get_images_galleries(self.gallery_id)
+        photos = await client.get_api_images_galleries(self.gallery_id)
         return [
             self.Photo.from_dict(photo, http=client)
             for photo in photos
@@ -534,7 +534,7 @@ class Purchaser:
         :param http: ``HTTPClient``, który będzie użyty zamiast tego podanego w konstruktorze.
         :raises HTTPClientLookupError: nie znaleziono otwartego ``HTTPClient``a.
         """
-        await choose_http(http, self._http).post_orders_four_worlds_beginning(self.to_dict())
+        await choose_http(http, self._http).post_api_orders_four_worlds_beginning(self.to_dict())
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
@@ -581,7 +581,7 @@ class PersonalReservationInfo:
         :raises HTTPClientLookupError: nie znaleziono otwartego ``HTTPClient``a.
         """
         return ReservationDetails.from_dict(
-            await choose_http(http, self._http).post_reservations_manage(self.to_dict())
+            await choose_http(http, self._http).post_api_reservations_manage(self.to_dict())
         )
 
 
@@ -739,7 +739,7 @@ class Reservation:
         :param http: ``HTTPClient``, który będzie użyty zamiast tego podanego w konstruktorze.
         :returns: lista kodów rezerwacji.
         """
-        return await choose_http(http, self._http).post_reservations_subscribe(self.to_dict())
+        return await choose_http(http, self._http).post_api_reservations_subscribe(self.to_dict())
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
@@ -868,7 +868,7 @@ class EventReservation:
         :param http: ``HTTPClient``, który będzie użyty zamiast tego podanego w konstruktorze.
         :raises HTTPClientLookupError: nie znaleziono otwartego ``HTTPClient``a.
         """
-        await choose_http(http, self._http).post_events_inauguration(self.to_dict())
+        await choose_http(http, self._http).post_api_events_inauguration(self.to_dict())
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
@@ -1009,7 +1009,7 @@ class PlebisciteCandidate:
         """
         if not ignore_revote and self.voted:
             raise RevoteError(self.category)
-        await choose_http(http, self._http).patch_vote(self.category, self.name)
+        await choose_http(http, self._http).patch_api_vote(self.category, self.name)
 
 
 Photo = Gallery.Photo

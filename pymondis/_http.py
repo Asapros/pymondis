@@ -56,7 +56,7 @@ class HTTPClient(AsyncClient):
             return cache_response
         return response
 
-    async def get_camps(self) -> list[dict[str, str | int | bool | None | list[str | dict[str, str | int]]]]:
+    async def get_api_camps(self) -> list[dict[str, str | int | bool | None | list[str | dict[str, str | int]]]]:
         """
         Zwraca dane o aktualnych obozach.
 
@@ -68,7 +68,7 @@ class HTTPClient(AsyncClient):
         )
         return response.json()
 
-    async def post_events_inauguration(self, reservation_model: dict):
+    async def post_api_events_inauguration(self, reservation_model: dict):
         """
         Rezerwuje inaugurację.
 
@@ -79,7 +79,7 @@ class HTTPClient(AsyncClient):
             json=reservation_model
         )
 
-    async def get_images_galleries_castle(self, castle: str) -> list[dict[str, str | int | bool]]:
+    async def get_api_images_galleries_castle(self, castle: str) -> list[dict[str, str | int | bool]]:
         """
         Dostaje podstawowe dane na temat aktualnych galerii z danego zamku.
 
@@ -92,7 +92,7 @@ class HTTPClient(AsyncClient):
 
         return response.json()
 
-    async def get_images_galleries(self, gallery_id: int) -> list[dict[str, str]]:
+    async def get_api_images_galleries(self, gallery_id: int) -> list[dict[str, str]]:
         """
         Dostaje linki do zdjęć znajdujących się w galerii o danym ID.
 
@@ -105,7 +105,7 @@ class HTTPClient(AsyncClient):
 
         return response.json()
 
-    async def post_orders_four_worlds_beginning(self, purchaser: dict):
+    async def post_api_orders_fourworldsbeginning(self, purchaser: dict):
         """
         Zamawia książkę „QUATROMONDIS – CZTERY ŚWIATY HUGONA YORCKA. OTWARCIE”.
 
@@ -116,7 +116,7 @@ class HTTPClient(AsyncClient):
             json=purchaser
         )
 
-    async def post_parents_zone_survey(self, survey_hash: str, result: dict):
+    async def post_api_parentszone_survey(self, survey_hash: str, result: dict):
         """
         Prawdopodobnie nieobowiązujący już endpoint do jakiejś ankiety.
 
@@ -128,7 +128,7 @@ class HTTPClient(AsyncClient):
             json=result
         )
 
-    async def get_parents_zone_crew(self) -> list[dict[str, str]]:
+    async def get_api_parentszone_crew(self) -> list[dict[str, str]]:
         """
         Zwraca dane wszystkich psorów i kierowników.
 
@@ -141,7 +141,7 @@ class HTTPClient(AsyncClient):
 
         return response.json()
 
-    async def post_parents_zone_apply(self):
+    async def post_api_parentszone_apply(self):
         """
         Zgłasza cię do pracy.
 
@@ -158,7 +158,7 @@ class HTTPClient(AsyncClient):
         # Dane najprawdopodobniej są wysyłane jako form, ale nie ma tego w swagger-ze, a ja jestem borowikiem w
         # javascript-a i nie czaje, o co chodzi, dodajcie do dokumentacji pls
 
-    async def post_reservations_subscribe(self, reservation_model: dict) -> list[str]:
+    async def post_api_reservations_subscribe(self, reservation_model: dict) -> list[str]:
         """
         Rezerwuje obóz.
 
@@ -173,7 +173,7 @@ class HTTPClient(AsyncClient):
 
         return response.json()
 
-    async def post_reservations_manage(self, pri: dict[str, str]) -> dict[str, str | bool]:
+    async def post_api_reservations_manage(self, pri: dict[str, str]) -> dict[str, str | bool]:
         """
         Dostaje dane o rezerwacji na podstawie jej kodu i nazwiska osoby rezerwującej.
 
@@ -188,7 +188,7 @@ class HTTPClient(AsyncClient):
 
         return response.json()
 
-    async def patch_vote(self, category: str, name: str):
+    async def patch_api_vote(self, category: str, name: str):
         """
         Głosuje na kandydata plebiscytu.
 
@@ -199,7 +199,7 @@ class HTTPClient(AsyncClient):
             self.base + "/Vote/{}/{}".format(category, name)
         )
 
-    async def get_vote_plebiscite(self, year: int) -> list[dict[str, str | int | bool]]:
+    async def get_api_vote_plebiscite(self, year: int) -> list[dict[str, str | int | bool]]:
         """
         Zwraca surowe dane o kandydatach plebiscytu z danego roku (bez opisów :/).
 
