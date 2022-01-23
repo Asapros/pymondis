@@ -11,7 +11,6 @@ from typing import AsyncIterator
 from attr import Factory, attrib, attrs
 from attr.converters import optional as optional_converter
 from attr.validators import deep_iterable, instance_of as type_validator, optional as optional_validator
-from httpx import Response
 
 from ._enums import CampLevel, CrewRole, EventReservationOption, Season, SourcePoll, TShirtSize, World
 from ._exceptions import InactiveCastleError, InvalidGalleryError, RevoteError
@@ -115,11 +114,31 @@ class Resource:
         eq=False,
         repr=False
     )
-    _cache_response = attrib(
-        type=Response | None,
+    _cache_content = attrib(
+        type=bytes | None,
         default=None,
         validator=optional_validator(
-            type_validator(Response)
+            type_validator(bytes)
+        ),
+        kw_only=True,
+        eq=False,
+        repr=False
+    )
+    _cache_etag = attrib(
+        type=str | None,
+        default=None,
+        validator=optional_validator(
+            type_validator(str)
+        ),
+        kw_only=True,
+        eq=False,
+        repr=False
+    )
+    _cache_last_modified = attrib(
+        type=str | None,
+        default=None,
+        validator=optional_validator(
+            type_validator(str)
         ),
         kw_only=True,
         eq=False,
@@ -143,12 +162,28 @@ class Resource:
         :returns: asynchroniczny iterator po fragmentach danych przesłanych przez serwer
         """
         # Lock-i działają wolniej w tym przypadku...
-        response = await choose_http(http, self._http).get_resource(
-            self.url, self._cache_response if use_cache else None
-        )
+        headers = {}
+        if use_cache:
+            if self._cache_etag is not None:
+                headers["If-None-Match"] = self._cache_etag
+            if self._cache_last_modified is not None:
+                headers["If-Modified-Since"] = self._cache_last_modified
+        content: bytes = b""
+        async with choose_http(http, self._http).stream(
+            "GET",
+            self.url,
+            headers=headers
+        ) as response:
+            if response.status_code == 304:
+                yield self._cache_content
+                return
+            async for chunk in response.aiter_bytes(chunk_size):
+                content += chunk
+                yield chunk
         if update_cache:
-            self._cache_response = response
-        return response.aiter_bytes(chunk_size)
+            self._cache_content = content
+            self._cache_etag = response.headers["ETag"]
+            self._cache_last_modified = response.headers["Last-Modified"]
 
     async def get(self, use_cache: bool = True, update_cache: bool = True, http: HTTPClient | None = None) -> bytes:
         """
@@ -159,9 +194,8 @@ class Resource:
         :param http: ``HTTPClient``, który będzie użyty zamiast tego podanego w konstruktorze.
         :returns: dane po całkowitym ich pobraniu przez ``get_stream``.
         """
-        iterator: AsyncIterator = await self.get_stream(use_cache, update_cache, None, http)
         content: bytes = b""
-        async for chunk in iterator:  # TODO dane są przecież w jednym kawałku, można je od razu returnować
+        async for chunk in self.get_stream(use_cache, update_cache, None, http):
             content += chunk
         return content
 

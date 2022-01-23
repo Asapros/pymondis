@@ -1,6 +1,6 @@
 from typing import Callable, NoReturn
 
-from httpx import AsyncClient, Response
+from httpx import AsyncClient
 
 from ._util import default_backoff
 from .metadata import __title__ as project_name, __version__ as project_version
@@ -29,32 +29,6 @@ class HTTPClient(AsyncClient):
         self.headers = {"User-Agent": "{}/{}".format(project_name, project_version)}
 
         self.send = backoff(self.send)
-
-    async def get_resource(
-            self,
-            url: str,
-            cache_response: Response | None = None
-    ) -> Response:
-        """
-        Pobiera dane z serwera z zasobami.
-
-        :param url: URL, na którym znajdują się dane (najczęściej na ``hymsresources.blob.core.windows.net``).
-        :param cache_response: zapisana wcześniej odpowiedź (będzie wykorzystana, gdy dane się nie zmieniły).
-        :returns: odpowiedź serwera (świeża lub z ``cache_response``).
-        """
-        headers = {}
-        if cache_response is not None:
-            if cache_response.headers["Last-Modified"] is not None:
-                headers["If-Modified-Since"] = cache_response.headers["Last-Modified"]
-            if cache_response.headers["ETag"] is not None:
-                headers["If-None-Match"] = cache_response.headers["ETag"]
-        response = await self.get(  # TODO STREAM
-            url,
-            headers=headers
-        )
-        if response.status_code == 304:
-            return cache_response
-        return response
 
     async def get_api_camps(self) -> list[dict[str, str | int | bool | None | list[str | dict[str, str | int]]]]:
         """
