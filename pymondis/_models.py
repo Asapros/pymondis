@@ -412,7 +412,7 @@ class Camp:
     
     :ivar camp_id: id obozu.
     :ivar code: kod obozu ``Z, jeśli w zimę + skrót zamku + numer + skrót programu``
-    :ivar castle: zamek, w którym odbywa się obóz. # TODO place
+    :ivar place: zamek, w którym odbywa się obóz.
     :ivar price: cena obozu.
     :ivar promo: przeceniona cena, jeśli jest.
     :ivar active: aktywny? (nie ma listy rezerwowej).
