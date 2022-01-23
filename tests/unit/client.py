@@ -13,15 +13,11 @@ class TestClient(IsolatedAsyncioTestCase):
         async with Client() as client:
             await gather(
                 client.get_crew(),
-                client.get_camps()
+                client.get_camps(),
+                client.get_plebiscite(datetime.now().year)
             )
 
-    async def test_plebiscite(self):
-        from pymondis import Client
-        async with Client() as client:
-            await client.get_plebiscite(datetime.now().year)
-
-    async def test_castles(self):
+    async def test_galleries(self):
         from pymondis import Client
         async with Client() as client:
             for castle in await client.get_castles():
