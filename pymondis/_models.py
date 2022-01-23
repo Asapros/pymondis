@@ -334,12 +334,28 @@ class Gallery:
             **kwargs
         )
 
-
+# TODO to jest castle status Castle to będzie enum tak jak wcześniej
+# TODO to był zły pomysł
 @attrs(repr=True, slots=True, frozen=True, hash=True)
 class Castle:
     """
     Mówi o statusie zamku.
 
+    :cvar BARANOW: zamek w Baranowie Sandomierskim.
+    :cvar CZOCHA: zamek Czocha.
+    :cvar GNIEW: zamek Gniew.
+    :cvar GOLUB: zamek Golub-Dobrzyń (Już brak turnusów).
+    :cvar KLICZKOW: zamek Kliczków.
+    :cvar KRASICZYN: zamek w Krasiczynie.
+    :cvar MOSZNA: zamek Moszna.
+    :cvar NIDZICA: Zamek w nidzicy.
+    :cvar PLUTSK: Zamek w Płutsku.
+    :cvar RACOT: Pałac Racot.
+    :cvar RYBOKARTY: Pałac Rybi... rebo... ri... ryboso... rybokra... rybokarty.
+    :cvar TUCZNO: Zamek Tuczno (Już brak turnusów).
+    :cvar WITASZYCE: Zamek Witaszyce.
+
+    :cvar _ID_TO_NAME_MAP: dict z numerami zamków jako klucze i nazwami jako wartości.
     :ivar name: nazwa zamku.
     :ivar castle_id: ID zamku.
     :ivar active: czy zamek posiada aktywne galerie?
@@ -353,14 +369,16 @@ class Castle:
         validator=optional_validator(
             type_validator(int)
         ),
-        default=None
+        default=None,
+        eq=False
     )
     active = attrib(
         type=bool | None,
         validator=optional_validator(
             type_validator(bool)
         ),
-        default=None
+        default=None,
+        eq=False
     )
     _http = attrib(
         type=HTTPClient | None,
@@ -371,6 +389,20 @@ class Castle:
         eq=False,
         repr=False
     )
+
+    BARANOW: "Castle"
+    CZOCHA: "Castle"
+    GNIEW: "Castle"
+    GOLUB: "Castle"
+    KLICZKOW: "Castle"
+    KRASICZYN: "Castle"
+    MOSZNA: "Castle"
+    NIDZICA: "Castle"
+    PLUTSK: "Castle"
+    RACOT: "Castle"
+    RYBOKARTY: "Castle"
+    TUCZNO: "Castle"
+    WITASZYCE: "Castle"
 
     _ID_TO_NAME_MAP: dict[int, str] = {
         1:  "Zamek w Baranowie Sandomierskim",
