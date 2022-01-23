@@ -25,13 +25,16 @@ def default_backoff(function):
     async def inner_backoff(*args, **kwargs):
         tries: int = 0
         while True:
+            tries += 1
             try:
                 response = await function(*args, **kwargs)
                 response.raise_for_status()
                 return response
             except HTTPStatusError as error:
-                if error.response.status_code < 500:
-                    if error.response.status_code >= 400 or tries >= 3:
+                if tries >= 3:
+                    raise
+                if not error.response.is_server_error:
+                    if error.response.is_client_error:
                         raise
                     return error.response
             except ConnectError:
@@ -39,7 +42,6 @@ def default_backoff(function):
                     raise
 
             await sleep(tries + 0.5)
-            tries += 1
 
     return inner_backoff
 
