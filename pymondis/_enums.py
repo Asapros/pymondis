@@ -9,25 +9,6 @@ class CrewRole(Enum):
     HEADMASTER = "HeadMaster"
 
 
-class Castle(Enum):
-    """
-    Zamki, w których organizowane są obozy.
-    """
-    BARANOW = "Zamek w Baranowie Sandomierskim"
-    CZOCHA = "Zamek Czocha"
-    GNIEW = "Zamek Gniew"
-    GOLUB = "Zamek Golub Dobrzyń"
-    KLICZKOW = "Zamek Kliczków"
-    KRASICZYN = "Zamek w Krasiczynie"
-    MOSZNA = "Zamek Moszna"
-    NIDZICA = "Zamek w Nidzicy"
-    PLUTSK = "Zamek w Pułtusku"
-    RACOT = "Pałac Racot"
-    RYBOKARTY = "Pałac Rybokarty"
-    TUCZNO = "Zamek Tuczno"
-    WITASZYCE = "Pałac Witaszyce"
-
-
 class CampLevel(Enum):
     """
     Poziomy obozów.

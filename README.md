@@ -5,20 +5,30 @@ Nieoficjalny wrapper api [Quatromondis](https://quatromondis.pl/) w pythonie
 
 ## Fajne rzeczy
 - Wszystkie zapytania są asynchroniczne z użyciem `httpx`
+- Moduł ``shell`` udostępnia prosty interfejs do używania biblioteki bez konieczności tworzenia asynchronicznej funckji
 - Fajnie obiekty z użyciem `attrs` (nawet *repr()* działa!)
 - Ponawianie nieudanych zapytań
 - Epicka składnia pythona 3.10 (dlatego na razie można korzystać tylko z 3.10)
 - Cache'owanie zdjęć
-- Type-hint-y
+- Type hinty
 
 ## Co możesz zrobić
 - Dostać listę wszystkich aktualnych obozów
 - Dostać listę wszystkich aktualnych galerii
+- Dostać listę wszystkich zamków z aktywną fotorelacją
 - Dostać listę wszystkich psorów z opisami (bez biura i HY)
 - Dostać listę wszystkich kandydatów plebiscytów od 2019
-- Zobaczyć wszystkie zdjęcia ze wszystkich galerii od początku istnienia fotorelacji!
 - Zagłosować w plebiscycie
+- Pobrać wszystkie zdjęcia z [aktualnych](#old-galeries-deleted) galerii 
 - Męczyć się debugowaniem przez 5 godzin, bo zapomniałeś dać *await* ;)
+
+## Czego już nie możesz zrobić ;(
+<a name="old-galeries-deleted"></a>
+- Do początku 2022 można było zobaczyć fotorelację nawet z 2019 roku, ale już bloby zaczęły znikać.
+To była główna funkcjonalność biblioteki — pobieranie starych niedostępnych na stronie zdjęć,
+ale informatycy pożałowali miejscem na dysku i je usunęli. Przepraszam wszystkich którzy przyszli tutaj z nadzieją
+odtworzenia swoich dawnych wspomnień. Polecam pobierać całe galerie, póki jeszcze nie zostały usunięte, na szczęście
+zdążyłem pobrać zdjęcia ze swoich wszystkich starych turnusów.
 
 ## Co prawdopodobnie możesz zrobić
 - Zarezerwować miejsce w inauguracji
@@ -36,17 +46,5 @@ Aktualna wersja
 ```shell
 pip install git+https://github.com/Asapros/pymondis.git
 ```
-
-## UWAGA!
-*DZIEJĄ SIĘ DZIWNE RZECZY, ZNIKA WSZYSTKO Z GALERII I DZIEJĄ SIĘ RZECZY NIESTWORZONE*
-
-Przez początek zimowego sezonu galerie się zepsuły. Jest wiele anomalii:
-1. Są pokazane galerie z przyszłości
-2. Galerie z przyszłości czasem mają w sobie zdjęcia XD (tu zawsze występuje błąd z punktu 4 i czasem z 3)
-3. Niektóre galerie, które mają 0 zdjęć, nie są ``empty``
-4. Serwer API czasem odsyła do nieistniejących zdjęć na serwerze z zasobami
-  (Oczywiście przywala ci ``404 The specified blob does not exist.`` Jakby to była twoja wina)
-
-
 
 [dla google bo sobie dalej nie radzi z indeksowaniem :/]: # (quatromondis api quatromondis python api wrapper nieoficjalny)

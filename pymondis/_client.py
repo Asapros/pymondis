@@ -1,11 +1,10 @@
 from typing import NoReturn
 
-from ._enums import Castle
 from ._http import HTTPClient
 from ._models import (
     Camp,
+    Castle,
     CrewMember,
-    Gallery,
     PlebisciteCandidate
 )
 
@@ -25,6 +24,15 @@ class Client:
         """
         self.http: HTTPClient = HTTPClient() if http is None else http
 
+    async def get_castles(self) -> list[Castle]:
+        """
+        Dostaje listę zamków.
+
+        :returns: lista zamków.
+        """
+        castles = await self.http.get_api_images_galleries_castles()
+        return [Castle.from_dict(castle, http=self.http) for castle in castles]
+
     async def get_camps(self) -> list[Camp]:
         """
         Dostaje listę obozów.
@@ -33,16 +41,6 @@ class Client:
         """
         camps = await self.http.get_api_camps()
         return [Camp.from_dict(camp) for camp in camps]
-
-    async def get_galleries(self, castle: Castle) -> list[Gallery]:
-        """
-        Dostaje listę galerii z danego zamku.
-
-        :param castle: zamek, z którego są szukane galerie.
-        :returns: lista aktualnych galerii z podanego zamku.
-        """
-        galleries = await self.http.get_api_images_galleries_castle(castle.value)
-        return [Gallery.from_dict(gallery, http=self.http) for gallery in galleries]
 
     async def get_crew(self) -> list[CrewMember]:
         """
@@ -53,7 +51,7 @@ class Client:
         crew = await self.http.get_api_parentszone_crew()
         return [CrewMember.from_dict(crew_member, http=self.http) for crew_member in crew]
 
-    async def get_plebiscite(self, year: int) -> list[PlebisciteCandidate]:
+    async def get_plebiscite(self, year: int) -> list[PlebisciteCandidate]:  # TODO Plebiscite - model
         """
         Dostaje listę kandydatów plebiscytu.
 

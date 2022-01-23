@@ -1,10 +1,9 @@
 """
 Trochę synchronicznych metod do użycia w konsoli.
 """
-__all__ = "get_camps", "get_plebiscite", "get_galleries", "get_crew", "apply_for_job"
+__all__ = "get_camps", "get_plebiscite", "get_castles", "get_crew", "apply_for_job"
 
 from ._client import Client
-from ._enums import Castle
 from ._util import synchronize
 
 
@@ -21,9 +20,9 @@ async def get_plebiscite(year: int):
 
 
 @synchronize
-async def get_galleries(castle: Castle):
+async def get_castles():
     async with Client() as client:
-        return await client.get_galleries(castle)
+        return await client.get_castles()
 
 
 @synchronize

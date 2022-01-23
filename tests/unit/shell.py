@@ -1,7 +1,6 @@
 from unittest import TestCase, main
 
-from pymondis import Castle
-from pymondis.shell import get_camps, get_crew, get_galleries, get_plebiscite
+from pymondis.shell import get_camps, get_castles, get_crew, get_plebiscite
 
 
 class TestClient(TestCase):
@@ -11,8 +10,8 @@ class TestClient(TestCase):
     def test_plebiscite(self):
         get_plebiscite(2021)
 
-    def test_galleries(self):
-        get_galleries(Castle.MOSZNA)
+    def test_castles(self):
+        get_castles()
 
     def test_crew(self):
         get_crew()

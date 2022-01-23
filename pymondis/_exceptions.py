@@ -29,3 +29,14 @@ class HTTPClientLookupError(Exception):
             "Model nie znalazł żadnego otwartego HTTPClient-a. "
             "Jeśli nie podasz go w konstruktorze, musisz bezpośrednio w metodzie."
         )
+
+
+class InactiveCastleError(Exception):
+    """
+    Wznoszone, podczas próby pobrania listy galerii z nieaktywnego zamku.
+    """
+
+    def __init__(self, name: str):
+        super().__init__(
+            "{} jest aktualnie nieaktywny i nie ma w nim żadnych galerii.".format(name)
+        )

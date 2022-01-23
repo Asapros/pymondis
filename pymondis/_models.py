@@ -13,8 +13,8 @@ from attr.converters import optional as optional_converter
 from attr.validators import deep_iterable, instance_of as type_validator, optional as optional_validator
 from httpx import Response
 
-from ._enums import CampLevel, Castle, CrewRole, EventReservationOption, Season, SourcePoll, TShirtSize, World
-from ._exceptions import InvalidGalleryError, RevoteError
+from ._enums import CampLevel, CrewRole, EventReservationOption, Season, SourcePoll, TShirtSize, World
+from ._exceptions import InactiveCastleError, InvalidGalleryError, RevoteError
 from ._http import HTTPClient
 from ._util import (
     choose_http,
@@ -302,13 +302,117 @@ class Gallery:
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
+class Castle:
+    """
+    Mówi o statusie zamku.
+
+    :ivar name: nazwa zamku.
+    :ivar castle_id: ID zamku.
+    :ivar active: czy zamek posiada aktywne galerie?
+    """
+    name = attrib(
+        type=str,
+        validator=type_validator(str)
+    )
+    castle_id = attrib(
+        type=int | None,
+        validator=optional_validator(
+            type_validator(int)
+        ),
+        default=None
+    )
+    active = attrib(
+        type=bool | None,
+        validator=optional_validator(
+            type_validator(bool)
+        ),
+        default=None
+    )
+    _http = attrib(
+        type=HTTPClient | None,
+        default=None,
+        validator=optional_validator(
+            type_validator(HTTPClient)
+        ),
+        eq=False,
+        repr=False
+    )
+
+    _ID_TO_NAME_MAP: dict[int, str] = {
+        1:  "Zamek w Baranowie Sandomierskim",
+        2:  "Zamek Czocha",
+        3:  "Zamek Gniew",
+        4:  "Zamek Golub Dobrzyń",
+        5:  "Zamek Kliczków",
+        6:  "Zamek w Krasiczynie",
+        7:  "Zamek Moszna",
+        8:  "Zamek w Nidzicy",
+        9:  "Zamek w Pułtusku",
+        10: "Pałac Racot",
+        11: "Pałac Rybokarty",
+        12: "Zamek Tuczno",
+        13: "Pałac Witaszyce"
+    }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, int | bool], **kwargs) -> "Castle":
+        r"""
+        Initializuje nową instancję za pomocą danych w dict'cie.
+
+        :param data: dict, na podstawie którego zostanie stworzona nowa instancja.
+        :param \**kwargs: dodatkowe argumenty, przekazywane dalej do konstruktora.
+        :returns: instancja klasy.
+        """
+        return cls(
+            cls._ID_TO_NAME_MAP[data["Id"]],
+            data["Id"],
+            data["IsActive"],
+            **kwargs
+        )
+
+    async def get_galleries(self, http: HTTPClient | None = None, ignore_inactivity: bool = False) -> list[Gallery]:
+        """
+        Dostaje listę galerii z zamku.
+
+        :param http: HTTPClient, który będzie użyty i podany do konstruktorów zamiast tego podanego w konstruktorze.
+        :param ignore_inactivity: zignorować, że zamek jest nieaktywny?
+        :returns: lista aktualnych galerii z zamku.
+        :raises HTTPClientLookupError: nie znaleziono otwartego ``HTTPClient``a.
+        :raises InactiveCastleError: ten zamek jest nieaktywny.
+            (Ten wyjątek nie wzniesie się przy ``ignore_inactivity`` ustawionym na ``True``)
+        """
+        if not ignore_inactivity and self.active is False:
+            raise InactiveCastleError(self.name)
+        client = choose_http(http, self._http)
+        return [
+            Gallery.from_dict(gallery, http=client)
+            for gallery in await client.get_api_images_galleries_castle(self.name)
+        ]
+
+
+Castle.BARANOW = Castle("Zamek w Baranowie Sandomierskim", 1)
+Castle.CZOCHA = Castle("Zamek Czocha", 2)
+Castle.GNIEW = Castle("Zamek Gniew", 3)
+Castle.GOLUB = Castle("Zamek Golub Dobrzyń", 4)
+Castle.KLICZKOW = Castle("Zamek Kliczków", 5)
+Castle.KRASICZYN = Castle("Zamek w Krasiczynie", 6)
+Castle.MOSZNA = Castle("Zamek Moszna", 7)
+Castle.NIDZICA = Castle("Zamek w Nidzicy", 8)
+Castle.PLUTSK = Castle("Zamek w Pułtusku", 9)
+Castle.RACOT = Castle("Pałac Racot", 10)
+Castle.RYBOKARTY = Castle("Pałac Rybokarty", 11)
+Castle.TUCZNO = Castle("Zamek Tuczno", 12)
+Castle.WITASZYCE = Castle("Pałac Witaszyce", 13)
+
+
+@attrs(repr=True, slots=True, frozen=True, hash=True)
 class Camp:
     """
     Reprezentuje obóz.
     
     :ivar camp_id: id obozu.
     :ivar code: kod obozu ``Z, jeśli w zimę + skrót zamku + numer + skrót programu``
-    :ivar castle: zamek, w którym odbywa się obóz.
+    :ivar castle: zamek, w którym odbywa się obóz. # TODO place
     :ivar price: cena obozu.
     :ivar promo: przeceniona cena, jeśli jest.
     :ivar active: aktywny? (nie ma listy rezerwowej).

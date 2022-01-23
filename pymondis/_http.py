@@ -25,10 +25,10 @@ class HTTPClient(AsyncClient):
         :param base_url: podstawowy url, na który będą kierowane zapytania (z wyjątkiem ``get_resource``).
         """
         super().__init__(timeout=timeout)
-        self.base: str = base_url
+        self.base: str = base_url  # TODO base_url obsługiwane przez httpx.AsyncClient
         self.headers = {"User-Agent": "{}/{}".format(project_name, project_version)}
 
-        self.request = backoff(self.request)
+        self.request = backoff(self.request)  # TODO backoff w init'cie
 
     async def get_resource(
             self,
@@ -48,7 +48,7 @@ class HTTPClient(AsyncClient):
                 headers["If-Modified-Since"] = cache_response.headers["Last-Modified"]
             if cache_response.headers["ETag"] is not None:
                 headers["If-None-Match"] = cache_response.headers["ETag"]
-        response = await self.get(
+        response = await self.get(  # TODO STREAM
             url,
             headers=headers
         )
@@ -79,6 +79,18 @@ class HTTPClient(AsyncClient):
             json=reservation_model
         )
 
+    async def get_api_images_galleries_castles(self) -> list[dict[str, str | int | bool]]:
+        """
+        Podaje czy dany zamek jest aktywny pod kątem galerii.
+
+        :returns: lista ze statusami zamków.
+        """
+        response = await self.get(
+            self.base + "/Images/Galeries/Castles",  # 'Galeries' - English 100
+            headers={"Accept": "application/json"})
+
+        return response.json()
+
     async def get_api_images_galleries_castle(self, castle: str) -> list[dict[str, str | int | bool]]:
         """
         Dostaje podstawowe dane na temat aktualnych galerii z danego zamku.
@@ -87,7 +99,7 @@ class HTTPClient(AsyncClient):
         :returns: lista reprezentująca aktualne galerie z zamku.
         """
         response = await self.get(
-            self.base + "/Images/Galeries/Castle/{}".format(castle),  # 'Galeries' - English 100
+            self.base + "/Images/Galeries/Castle/{}".format(castle),  # Znowu 'Galeries'
             headers={"Accept": "application/json"})
 
         return response.json()
@@ -100,7 +112,7 @@ class HTTPClient(AsyncClient):
         :returns: lista linków do zdjęć w dwóch jakościach.
         """
         response = await self.get(
-            self.base + "/Images/Galeries/{}".format(gallery_id),  # Znowu 'Galeries'
+            self.base + "/Images/Galeries/{}".format(gallery_id),  # 'Galeries'...
             headers={"Accept": "application/json"})
 
         return response.json()
