@@ -11,7 +11,7 @@ from ._enums import EventReservationOption
 from ._exceptions import HTTPClientLookupError
 
 
-def backoff(function):
+def default_backoff(function):
     """
     Dekorator funkcji wykonujących zapytania.
 

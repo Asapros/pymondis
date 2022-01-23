@@ -1,8 +1,8 @@
-from typing import NoReturn
+from typing import Callable, NoReturn
 
 from httpx import AsyncClient, Response
 
-from ._util import backoff
+from ._util import default_backoff
 from .metadata import __title__ as project_name, __version__ as project_version
 
 
@@ -15,6 +15,7 @@ class HTTPClient(AsyncClient):
     def __init__(
             self,
             timeout: float | None = None,
+            backoff: Callable[[Callable], Callable] = default_backoff,
             *,
             base_url: str = "https://quatromondisapi.azurewebsites.net/api"
     ):
@@ -24,11 +25,10 @@ class HTTPClient(AsyncClient):
         :param timeout: czas, po którym client zostanie samoistnie rozłączony gdy, nie uzyska odpowiedzi.
         :param base_url: podstawowy url, na który będą kierowane zapytania (z wyjątkiem ``get_resource``).
         """
-        super().__init__(timeout=timeout)
-        self.base: str = base_url  # TODO base_url obsługiwane przez httpx.AsyncClient
+        super().__init__(timeout=timeout, base_url=base_url)
         self.headers = {"User-Agent": "{}/{}".format(project_name, project_version)}
 
-        self.request = backoff(self.request)  # TODO backoff w init'cie
+        self.send = backoff(self.send)
 
     async def get_resource(
             self,
@@ -63,7 +63,7 @@ class HTTPClient(AsyncClient):
         :returns: lista informacji o obozach.
         """
         response = await self.get(
-            self.base + "/Camps",
+            "/Camps",
             headers={"Accept": "application/json"}
         )
         return response.json()
@@ -75,7 +75,7 @@ class HTTPClient(AsyncClient):
         :param reservation_model: dane o rezerwacji.
         """
         await self.post(
-            self.base + "/Events/Inauguration",
+            "/Events/Inauguration",
             json=reservation_model
         )
 
@@ -86,7 +86,7 @@ class HTTPClient(AsyncClient):
         :returns: lista ze statusami zamków.
         """
         response = await self.get(
-            self.base + "/Images/Galeries/Castles",  # 'Galeries' - English 100
+            "/Images/Galeries/Castles",  # 'Galeries' - English 100
             headers={"Accept": "application/json"})
 
         return response.json()
@@ -99,7 +99,7 @@ class HTTPClient(AsyncClient):
         :returns: lista reprezentująca aktualne galerie z zamku.
         """
         response = await self.get(
-            self.base + "/Images/Galeries/Castle/{}".format(castle),  # Znowu 'Galeries'
+            "/Images/Galeries/Castle/{}".format(castle),  # Znowu 'Galeries'
             headers={"Accept": "application/json"})
 
         return response.json()
@@ -112,7 +112,7 @@ class HTTPClient(AsyncClient):
         :returns: lista linków do zdjęć w dwóch jakościach.
         """
         response = await self.get(
-            self.base + "/Images/Galeries/{}".format(gallery_id),  # 'Galeries'...
+            "/Images/Galeries/{}".format(gallery_id),  # 'Galeries'...
             headers={"Accept": "application/json"})
 
         return response.json()
@@ -124,7 +124,7 @@ class HTTPClient(AsyncClient):
         :param purchaser: dane o osobie zamawiającej.
         """
         await self.post(
-            self.base + "/Orders/FourWorldsBeginning",
+            "/Orders/FourWorldsBeginning",
             json=purchaser
         )
 
@@ -136,7 +136,7 @@ class HTTPClient(AsyncClient):
         :param result: opinia na temat obozu/obozów (?).
         """
         await self.post(
-            self.base + "/ParentsZone/Survey/{}".format(survey_hash),
+            "/ParentsZone/Survey/{}".format(survey_hash),
             json=result
         )
 
@@ -147,7 +147,7 @@ class HTTPClient(AsyncClient):
         :returns: lista danych o kadrze
         """
         response = await self.get(
-            self.base + "/ParentsZone/Crew",
+            "/ParentsZone/Crew",
             headers={"Accept": "application/json"}
         )
 
@@ -178,7 +178,7 @@ class HTTPClient(AsyncClient):
         :returns: lista kodów rezerwacji.
         """
         response = await self.post(
-            self.base + "/Reservations/Subscribe",
+            "/Reservations/Subscribe",
             json=reservation_model,
             headers={"Accept": "application/json"}
         )
@@ -193,7 +193,7 @@ class HTTPClient(AsyncClient):
         :returns: dokładniejsze dane o rezerwacji.
         """
         response = await self.post(
-            self.base + "/Reservations/Manage",
+            "/Reservations/Manage",
             json=pri,
             headers={"Accept": "application/json"}
         )
@@ -208,7 +208,7 @@ class HTTPClient(AsyncClient):
         :param name: nazwa kandydata (najczęściej nazwisko).
         """
         await self.patch(  # A mnie dalej zastanawia, czemu tu patch jest, a nie post...
-            self.base + "/Vote/{}/{}".format(category, name)
+            "/Vote/{}/{}".format(category, name)
         )
 
     async def get_api_vote_plebiscite(self, year: int) -> list[dict[str, str | int | bool]]:
@@ -219,7 +219,7 @@ class HTTPClient(AsyncClient):
         :returns: lista reprezentująca kandydatów.
         """
         response = await self.get(
-            self.base + "/Vote/plebiscite/{}".format(year),  # Jedyny endpoint nie w PascalCase
+            "/Vote/plebiscite/{}".format(year),  # Jedyny endpoint nie w PascalCase
             headers={"Accept": "application/json"}
         )
 
