@@ -12,7 +12,7 @@ from attr import Factory, attrib, attrs
 from attr.converters import optional as optional_converter
 from attr.validators import deep_iterable, instance_of as type_validator, optional as optional_validator
 
-from ._enums import CampLevel, CrewRole, EventReservationOption, Season, SourcePoll, TShirtSize, World
+from ._enums import CampLevel, Castle, CrewRole, EventReservationOption, Season, SourcePoll, TShirtSize, World
 from ._exceptions import InactiveCastleError, InvalidGalleryError, RevoteError
 from ._http import HTTPClient
 from ._util import (
@@ -334,35 +334,21 @@ class Gallery:
             **kwargs
         )
 
-# TODO to jest castle status Castle to będzie enum tak jak wcześniej
-# TODO to był zły pomysł
+
 @attrs(repr=True, slots=True, frozen=True, hash=True)
-class Castle:
+class CastleGalleries:
     """
-    Mówi o statusie zamku.
+    Reprezentuje indywidualny zamek w fotorelacji.
 
-    :cvar BARANOW: zamek w Baranowie Sandomierskim.
-    :cvar CZOCHA: zamek Czocha.
-    :cvar GNIEW: zamek Gniew.
-    :cvar GOLUB: zamek Golub-Dobrzyń (Już brak turnusów).
-    :cvar KLICZKOW: zamek Kliczków.
-    :cvar KRASICZYN: zamek w Krasiczynie.
-    :cvar MOSZNA: zamek Moszna.
-    :cvar NIDZICA: Zamek w nidzicy.
-    :cvar PLUTSK: Zamek w Płutsku.
-    :cvar RACOT: Pałac Racot.
-    :cvar RYBOKARTY: Pałac Rybi... rebo... ri... ryboso... rybokra... rybokarty.
-    :cvar TUCZNO: Zamek Tuczno (Już brak turnusów).
-    :cvar WITASZYCE: Zamek Witaszyce.
-
-    :cvar _ID_TO_NAME_MAP: dict z numerami zamków jako klucze i nazwami jako wartości.
-    :ivar name: nazwa zamku.
+    :cvar _ID_TO_NAME_MAP: dict z numerami zamków jako klucze i zamkami jako wartości.
+    :ivar castle: zamek.
     :ivar castle_id: ID zamku.
     :ivar active: czy zamek posiada aktywne galerie?
+    :ivar _http (param http): ``HTTPClient``, który będzie używany do pobrania galerii.
     """
-    name = attrib(
-        type=str,
-        validator=type_validator(str)
+    castle = attrib(
+        type=Castle,
+        validator=type_validator(Castle)
     )
     castle_id = attrib(
         type=int | None,
@@ -390,38 +376,24 @@ class Castle:
         repr=False
     )
 
-    BARANOW: "Castle"
-    CZOCHA: "Castle"
-    GNIEW: "Castle"
-    GOLUB: "Castle"
-    KLICZKOW: "Castle"
-    KRASICZYN: "Castle"
-    MOSZNA: "Castle"
-    NIDZICA: "Castle"
-    PLUTSK: "Castle"
-    RACOT: "Castle"
-    RYBOKARTY: "Castle"
-    TUCZNO: "Castle"
-    WITASZYCE: "Castle"
-
-    _ID_TO_NAME_MAP: dict[int, str] = {
-        1:  "Zamek w Baranowie Sandomierskim",
-        2:  "Zamek Czocha",
-        3:  "Zamek Gniew",
-        4:  "Zamek Golub Dobrzyń",
-        5:  "Zamek Kliczków",
-        6:  "Zamek w Krasiczynie",
-        7:  "Zamek Moszna",
-        8:  "Zamek w Nidzicy",
-        9:  "Zamek w Pułtusku",
-        10: "Pałac Racot",
-        11: "Pałac Rybokarty",
-        12: "Zamek Tuczno",
-        13: "Pałac Witaszyce"
+    _ID_TO_CASTLE_MAP: dict[int, Castle] = {
+        1:  Castle.BARANOW,
+        2:  Castle.CZOCHA,
+        3:  Castle.GNIEW,
+        4:  Castle.GOLUB,
+        5:  Castle.KLICZKOW,
+        6:  Castle.KRASICZYN,
+        7:  Castle.MOSZNA,
+        8:  Castle.NIDZICA,
+        9:  Castle.PLUTSK,
+        10: Castle.RACOT,
+        11: Castle.RYBOKARTY,
+        12: Castle.TUCZNO,
+        13: Castle.WITASZYCE
     }
 
     @classmethod
-    def from_dict(cls, data: dict[str, int | bool], **kwargs) -> "Castle":
+    def from_dict(cls, data: dict[str, int | bool], **kwargs) -> "CastleGalleries":
         r"""
         Initializuje nową instancję za pomocą danych w dict'cie.
 
@@ -430,13 +402,13 @@ class Castle:
         :returns: instancja klasy.
         """
         return cls(
-            cls._ID_TO_NAME_MAP[data["Id"]],
+            cls._ID_TO_CASTLE_MAP[data["Id"]],
             data["Id"],
             data["IsActive"],
             **kwargs
         )
 
-    async def get_galleries(self, http: HTTPClient | None = None, ignore_inactivity: bool = False) -> list[Gallery]:
+    async def get(self, http: HTTPClient | None = None, ignore_inactivity: bool = False) -> list[Gallery]:
         """
         Dostaje listę galerii z zamku.
 
@@ -448,27 +420,12 @@ class Castle:
             (Ten wyjątek nie wzniesie się przy ``ignore_inactivity`` ustawionym na ``True``)
         """
         if not ignore_inactivity and self.active is False:
-            raise InactiveCastleError(self.name)
+            raise InactiveCastleError(self.castle.value)
         client = choose_http(http, self._http)
         return [
             Gallery.from_dict(gallery, http=client)
-            for gallery in await client.get_api_images_galleries_castle(self.name)
+            for gallery in await client.get_api_images_galleries_castle(self.castle.value)
         ]
-
-
-Castle.BARANOW = Castle("Zamek w Baranowie Sandomierskim", 1)
-Castle.CZOCHA = Castle("Zamek Czocha", 2)
-Castle.GNIEW = Castle("Zamek Gniew", 3)
-Castle.GOLUB = Castle("Zamek Golub Dobrzyń", 4)
-Castle.KLICZKOW = Castle("Zamek Kliczków", 5)
-Castle.KRASICZYN = Castle("Zamek w Krasiczynie", 6)
-Castle.MOSZNA = Castle("Zamek Moszna", 7)
-Castle.NIDZICA = Castle("Zamek w Nidzicy", 8)
-Castle.PLUTSK = Castle("Zamek w Pułtusku", 9)
-Castle.RACOT = Castle("Pałac Racot", 10)
-Castle.RYBOKARTY = Castle("Pałac Rybokarty", 11)
-Castle.TUCZNO = Castle("Zamek Tuczno", 12)
-Castle.WITASZYCE = Castle("Pałac Witaszyce", 13)
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)

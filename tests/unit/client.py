@@ -23,7 +23,7 @@ class TestClient(IsolatedAsyncioTestCase):
             for castle in await client.get_castles():
                 if not castle.active:
                     continue
-                for gallery in await castle.get_galleries():
+                for gallery in await castle.get():
                     if gallery.empty:
                         continue
                     await (await gallery.get_photos())[0].normal.get()

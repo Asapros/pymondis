@@ -3,7 +3,7 @@ from typing import NoReturn
 from ._http import HTTPClient
 from ._models import (
     Camp,
-    Castle,
+    CastleGalleries,
     CrewMember,
     PlebisciteCandidate
 )
@@ -24,14 +24,14 @@ class Client:
         """
         self.http: HTTPClient = HTTPClient() if http is None else http
 
-    async def get_castles(self) -> list[Castle]:
+    async def get_castles(self) -> list[CastleGalleries]:
         """
-        Dostaje listę zamków.
+        Dostaje listę zamków z fotorelacji.
 
         :returns: lista zamków.
         """
         castles = await self.http.get_api_images_galleries_castles()
-        return [Castle.from_dict(castle, http=self.http) for castle in castles]
+        return [CastleGalleries.from_dict(castle, http=self.http) for castle in castles]
 
     async def get_camps(self) -> list[Camp]:
         """
