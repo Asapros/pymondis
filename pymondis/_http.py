@@ -50,7 +50,7 @@ class HTTPClient(AsyncClient):
         """
         await self.post(
             "/Events/Inauguration",
-            json=reservation_model
+            data=reservation_model
         )
 
     async def get_api_images_galleries_castles(self) -> list[dict[str, str | int | bool]]:
@@ -99,7 +99,7 @@ class HTTPClient(AsyncClient):
         """
         await self.post(
             "/Orders/FourWorldsBeginning",
-            json=purchaser
+            data=purchaser
         )
 
     async def post_api_parentszone_survey(self, survey_hash: str, result: dict):
@@ -111,7 +111,7 @@ class HTTPClient(AsyncClient):
         """
         await self.post(
             "/ParentsZone/Survey/{}".format(survey_hash),
-            json=result
+            data=result
         )
 
     async def get_api_parentszone_crew(self) -> list[dict[str, str]]:
@@ -153,7 +153,7 @@ class HTTPClient(AsyncClient):
         """
         response = await self.post(
             "/Reservations/Subscribe",
-            json=reservation_model,
+            data=reservation_model,
             headers={"Accept": "application/json"}
         )
 
@@ -198,6 +198,21 @@ class HTTPClient(AsyncClient):
         )
 
         return response.json()
+
+    async def get_api_camps_freshness(self):
+        """
+        Jestem w trakcie badania, o co chodzi.
+        Pewnie cache, ale to nie najlepszy sposób na to.
+        TO DOSŁOWNIE ZWRACA STRINGA, GDZIE TY WIDZISZ APPLICATION/JSON PANIE INFORMATYKU Z QUATROMONDIS
+
+        :returns: ???
+        """
+
+        response = await self.get(
+            "/Camps/Freshness",
+            headers={"Accept": "text/plain"}
+        )
+        return response.text
 
     async def __aenter__(self) -> "HTTPClient":  # Type-hinting
         await super().__aenter__()
