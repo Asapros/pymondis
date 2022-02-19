@@ -47,4 +47,10 @@ Aktualna wersja
 pip install git+https://github.com/Asapros/pymondis.git
 ```
 
+## api/Camps/Freshness
+  Podejrzewam że endpoint podaje, kiedy ostatnio była aktualizowana lista obozów (I tak ta lista jest wysyłana razem ze stroną, więc po co to? Nawet cache to nic nie da, chyba że *server-side*).
+To bardzo zastanawiające rozwiązanie, podkreślając ile HTTP ma standardowych sposobów cache'owania, które nie wymagają wykonywania dwóch zapytań (ETag, Last-Modified, ...).
+  Jeśli chodzi o Content-Type, to dziwne jest podawanie daty jako application/json. Niby tekst jest prawidłowym obiektem, ale no... istnieje coś takiego jak text/plain, bez potrzeby dodawania cudzysłowia.
+  Na razie przestaje drążyć ten temat - jadę na obóz (nie napisze gdzie, bo jeszcze mnie wywalą jak ktoś ogarnie XD). Jak wrócę, to spróbuje jakoś to zbadać (może 19.02)
+
 [dla google bo sobie dalej nie radzi z indeksowaniem :/]: # (quatromondis api quatromondis python api wrapper nieoficjalny)
