@@ -21,7 +21,7 @@ class Castle(Enum):
     KRASICZYN = "Zamek w Krasiczynie"
     MOSZNA = "Zamek Moszna"
     NIDZICA = "Zamek w Nidzicy"
-    PLUTSK = "Zamek w Pułtusku"
+    PULTUSK = "Zamek w Pułtusku"
     RACOT = "Pałac Racot"
     RYBOKARTY = "Pałac Rybokarty"
     TUCZNO = "Zamek Tuczno"
