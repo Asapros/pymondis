@@ -385,7 +385,7 @@ class CastleGalleries:
         6:  Castle.KRASICZYN,
         7:  Castle.MOSZNA,
         8:  Castle.NIDZICA,
-        9:  Castle.PLUTSK,
+        9:  Castle.PULTUSK,
         10: Castle.RACOT,
         11: Castle.RYBOKARTY,
         12: Castle.TUCZNO,
