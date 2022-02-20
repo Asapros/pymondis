@@ -203,16 +203,18 @@ class HTTPClient(AsyncClient):
         """
         Jestem w trakcie badania, o co chodzi.
         Pewnie cache, ale to nie najlepszy sposób na to.
-        TO DOSŁOWNIE ZWRACA STRINGA, GDZIE TY WIDZISZ APPLICATION/JSON PANIE INFORMATYKU Z QUATROMONDIS
+        Endpoint zwraca stringa z Content-Type: application/json XD
+
+        Mama mi właśnie weszła do pokoju i myśli, że hackuję.
 
         :returns: ???
         """
 
         response = await self.get(
             "/Camps/Freshness",
-            headers={"Accept": "text/plain"}
+            headers={"Accept": "application/json"}
         )
-        return response.text
+        return response.json()
 
     async def __aenter__(self) -> "HTTPClient":  # Type-hinting
         await super().__aenter__()
