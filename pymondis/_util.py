@@ -1,7 +1,7 @@
 """
 Przydatne funkcje.
 """
-from asyncio import run, sleep
+from asyncio import sleep
 from datetime import datetime
 from functools import wraps
 
@@ -44,19 +44,6 @@ def default_backoff(function):
             await sleep(tries + 0.5)
 
     return inner_backoff
-
-
-def synchronize(function):
-    """
-    Dekorator do zamiany funkcji asynchronicznych na synchroniczne.
-
-    :param function: funkcja do wrapowania.
-    :returns: wrapowana funkcja.
-    """
-    @wraps(function)
-    def inner_synchronize(*args, **kwargs):
-        return run(function(*args, **kwargs))
-    return inner_synchronize
 
 
 def choose_http(*http_clients: AsyncClient | None):

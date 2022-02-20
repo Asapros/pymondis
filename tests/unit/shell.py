@@ -1,6 +1,7 @@
 from unittest import TestCase, main
 
-from pymondis.shell import get_camps, get_castles, get_crew, get_plebiscite
+from pymondis import Castle
+from pymondis.shell import get_camps, get_castles, get_crew, get_galleries, get_plebiscite
 
 
 class TestClient(TestCase):
@@ -15,6 +16,9 @@ class TestClient(TestCase):
 
     def test_crew(self):
         get_crew()
+
+    def test_galleries(self):
+        get_galleries(Castle.RACOT)
 
 
 if __name__ == "__main__":
