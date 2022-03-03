@@ -19,11 +19,11 @@ Nieoficjalny wrapper api [Quatromondis](https://quatromondis.pl/) w pythonie
 - Dostać listę wszystkich psorów z opisami (bez biura i HY)
 - Dostać listę wszystkich kandydatów plebiscytów od 2019
 - Zagłosować w plebiscycie
-- Pobrać wszystkie zdjęcia z [aktualnych](#old-galeries-deleted) galerii 
+- Pobrać wszystkie zdjęcia z [aktualnych](#old-galleries-deleted) galerii 
 - Męczyć się debugowaniem przez 5 godzin, bo zapomniałeś dać *await* ;)
 
 ## Czego już nie możesz zrobić ;(
-<a name="old-galeries-deleted"></a>
+<a name="old-galleries-deleted"></a>
 - Do początku 2022 można było zobaczyć fotorelację nawet z 2019 roku, ale już bloby zaczęły znikać.
 To była główna funkcjonalność biblioteki — pobieranie starych niedostępnych na stronie zdjęć,
 ale informatycy pożałowali miejscem na dysku i je usunęli. Przepraszam wszystkich którzy przyszli tutaj z nadzieją

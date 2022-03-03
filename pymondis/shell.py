@@ -17,24 +17,24 @@ async def _open_and_request(client_class, method, *args, **kwargs):
 
 
 def get_camps():
-    run(_open_and_request(Client, Client.get_camps))
+    return run(_open_and_request(Client, Client.get_camps))
 
 
 def get_plebiscite(year: int):
-    run(_open_and_request(Client, Client.get_plebiscite, year))
+    return run(_open_and_request(Client, Client.get_plebiscite, year))
 
 
 def get_castles():
-    run(_open_and_request(Client, Client.get_castles))
+    return run(_open_and_request(Client, Client.get_castles))
 
 
 def get_crew():
-    run(_open_and_request(Client, Client.get_crew))
+    return run(_open_and_request(Client, Client.get_crew))
 
 
 def apply_for_job():
-    run(_open_and_request(Client, Client.apply_for_job))
+    return run(_open_and_request(Client, Client.apply_for_job))
 
 
 def get_galleries(castle: Castle):
-    run(_open_and_request(HTTPClient, CastleGalleries(castle).get))
+    return run(_open_and_request(HTTPClient, CastleGalleries(castle).get))
