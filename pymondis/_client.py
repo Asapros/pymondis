@@ -1,9 +1,10 @@
+from asyncio import gather
 from typing import NoReturn
 
 from ._http import HTTPClient
 from ._models import (
     Camp,
-    CastleGalleries,
+    CampList, CastleGalleries,
     CrewMember,
     PlebisciteCandidate
 )
@@ -33,14 +34,14 @@ class Client:
         castles = await self.http.get_api_images_galleries_castles()
         return [CastleGalleries.from_dict(castle, http=self.http) for castle in castles]
 
-    async def get_camps(self) -> list[Camp]:
+    async def get_camps(self) -> CampList:
         """
         Dostaje listę obozów.
 
         :returns: lista aktualnie dostępnych na stronie obozów.
         """
-        camps = await self.http.get_api_camps()
-        return [Camp.from_dict(camp) for camp in camps]
+        camps, freshness = await gather(self.http.get_api_camps(), self.http.get_api_camps_freshness())
+        return CampList(freshness, http=self.http, cache_camps=[Camp.from_dict(camp) for camp in camps])
 
     async def get_crew(self) -> list[CrewMember]:
         """
@@ -60,12 +61,6 @@ class Client:
         """
         candidates = await self.http.get_api_vote_plebiscite(year)
         return [PlebisciteCandidate.from_dict(candidate, http=self.http) for candidate in candidates]
-
-    async def apply_for_job(self):
-        """
-        Zgłasza aplikację o pracę.
-        """
-        await self.http.post_api_parentszone_apply()
 
     async def __aenter__(self) -> "Client":
         await self.http.__aenter__()

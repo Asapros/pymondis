@@ -141,8 +141,8 @@ class HTTPClient(AsyncClient):
             "Później otwórz nowy issue (https://github.com/Asapros/pymondis/issues (Implementacja zapytania POST)"
             "i podziel się nagranym zapytaniem (nie zapomnij za cenzurować danych osobowych)"
         )
-        # Dane najprawdopodobniej są wysyłane jako form, ale nie ma tego w swagger-ze, a ja jestem borowikiem w
-        # javascript-a i nie czaje, o co chodzi, dodajcie do dokumentacji pls
+        # Dane najprawdopodobniej są wysyłane jako form, ale nie ma tego w swaggerze, a ja jestem borowikiem w
+        # javascripta i nie czaje, o co chodzi, dodajcie do dokumentacji pls
 
     async def post_api_reservations_subscribe(self, reservation_model: dict) -> list[str]:
         """
@@ -199,15 +199,11 @@ class HTTPClient(AsyncClient):
 
         return response.json()
 
-    async def get_api_camps_freshness(self):
+    async def get_api_camps_freshness(self) -> str:
         """
-        Jestem w trakcie badania, o co chodzi.
-        Pewnie cache, ale to nie najlepszy sposób na to.
-        Endpoint zwraca stringa z Content-Type: application/json XD
+        Zwraca, kiedy ostatnio była aktualizowana lista obozów.
 
-        Mama mi właśnie weszła do pokoju i myśli, że hackuję.
-
-        :returns: ???
+        :returns: data (ISO 8601) ostatniej aktualizacji danych na /api/Camps
         """
 
         response = await self.get(

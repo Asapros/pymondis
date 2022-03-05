@@ -6,19 +6,21 @@ from pymondis.shell import get_camps, get_castles, get_crew, get_galleries, get_
 
 class TestClient(TestCase):
     def test_camps(self):
-        get_camps()
+        print("obozy:", get_camps())
 
     def test_plebiscite(self):
-        get_plebiscite(2021)
+        YEAR = 2021
+        print("plebiscyt {}:".format(YEAR), get_plebiscite(YEAR))
 
     def test_castles(self):
-        get_castles()
+        print("zamki fotorelacji:", get_castles())
 
     def test_crew(self):
-        get_crew()
+        print("załoga:", get_crew())
 
     def test_galleries(self):
-        get_galleries(Castle.RACOT)
+        CASTLE = Castle.RACOT
+        print("galerie {}:".format(CASTLE), get_galleries(CASTLE))
 
 
 if __name__ == "__main__":

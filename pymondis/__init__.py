@@ -5,6 +5,7 @@ from ._exceptions import HTTPClientLookupError, InvalidGalleryError, RevoteError
 from ._http import HTTPClient
 from ._models import (
     Camp,
+    CampList,
     CastleGalleries,
     Child,
     CrewMember,
@@ -35,6 +36,7 @@ __all__ = (
     "HTTPClientLookupError",
     "Resource",
     "Gallery",
+    "CampList",
     "Camp",
     "CastleGalleries",
     "Purchaser",

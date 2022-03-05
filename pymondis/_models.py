@@ -20,8 +20,7 @@ from ._util import (
     datetime_converter,
     optional_character_converter,
     optional_string_converter,
-    price_from_ero,
-    string_from_datetime
+    price_from_ero
 )
 
 
@@ -91,6 +90,50 @@ class ReservationDetails:
             "Możesz też dołączyć do issue przypuszczenia do czego może być każde pole."
         )
 
+@attrs(repr=True, slots=True, frozen=True, hash=True)
+class JobApplicationForm:
+    """
+    Dane potrzebne do podania do pracy.
+
+    :ivar name: Imię.
+    :ivar surname: Nazwisko.
+    :ivar phone: Numer telefonu.
+    :ivar email: Email.
+    :ivar about: Opis aplikującego.
+    """
+    name = attrib(
+        type=str,
+        validator=type_validator(str)
+    )
+    surname = attrib(
+        type=str,
+        validator=type_validator(str)
+    )
+    phone = attrib(
+        type=str,
+        validator=type_validator(str)
+    )
+    email = attrib(
+        type=str,
+        validator=type_validator(str)
+    )
+    about = attrib(
+        type=str,
+        validator=type_validator(str)
+    )
+    # TODO CV
+
+    _http = attrib(
+        type=HTTPClient | None,
+        validator=optional_validator(
+            type_validator(HTTPClient),
+        ),
+        default=None,
+        repr=False
+    )
+
+    async def submit(self, http: HTTPClient | None = None):
+        return await choose_http(http, self._http).post_api_parentszone_apply()
 
 @attrs(repr=True, slots=True)
 class Resource:
@@ -245,10 +288,6 @@ class Gallery:
                 large=Resource(data["EnlargedUrl"], **kwargs)
             )
 
-    BLACKLIST: tuple[int, ...] = (
-        2, 6, 7, 8, 19, 20, 21, 22, 23, 24, 42, 53, 65, 69, 71, 76, 77, 85, 86, 92, 95, 107, 113, 135, 115, 129, 133
-    )
-
     gallery_id = attrib(
         type=int,
         validator=type_validator(int)
@@ -294,6 +333,10 @@ class Gallery:
         ),
         default=None,
         repr=False
+    )
+
+    BLACKLIST: tuple[int, ...] = (
+        2, 6, 7, 8, 19, 20, 21, 22, 23, 24, 42, 53, 65, 69, 71, 76, 77, 85, 86, 92, 95, 107, 113, 135, 115, 129, 133
     )
 
     async def get_photos(self, http: HTTPClient | None = None, *, ignore_blacklist: bool = False) -> list[Photo]:
@@ -598,6 +641,58 @@ class Camp:
             ]
         )
 
+@attrs(repr=True, slots=True)
+class CampList:
+    freshness = attrib(
+        type=datetime | None,
+        converter=optional_converter(datetime_converter),
+        validator=optional_validator(type_validator(datetime))
+    )
+    _cache_camps = attrib(
+        type=list[Camp] | None,
+        factory=list,
+        validator=optional_validator(
+            deep_iterable(type_validator(Camp))
+        ),
+        kw_only=True,
+        eq=False,
+        repr=False
+    )
+    _http = attrib(
+        type=HTTPClient | None,
+        default=None,
+        validator=optional_validator(
+            type_validator(HTTPClient)
+        ),
+        eq=False,
+        repr=False
+    )
+
+    async def get(self, use_cache: bool = True, update_cache: bool = True, http: HTTPClient | None = None) -> list[Camp]:
+        """
+        Pobiera listę zamków.
+
+        :param use_cache: użyć ostatniej zapisanej odpowiedzi, gdy dane się nie zmieniły?
+        :param update_cache: zapisać odpowiedź do użycia później przez ``use_cache``?
+        :param http: ``HTTPClient``, który będzie użyty zamiast tego podanego w konstruktorze.
+        :returns: lista zamków.
+        """
+        client = choose_http(http, self._http)
+
+        if use_cache or update_cache:
+            freshness = datetime_converter(await client.get_api_camps_freshness())
+
+        if use_cache:
+            if self.freshness and self._cache_camps and self.freshness >= freshness:
+                return self._cache_camps
+
+        camps = [Camp.from_dict(camp) for camp in await client.get_api_camps()]
+
+        if update_cache:
+            self._cache_camps = camps
+            self.freshness = freshness
+        return camps
+
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
 class Purchaser:
@@ -767,7 +862,7 @@ class Reservation:
                 "Name":    self.name,
                 "Surname": self.surname,
                 "Tshirt":  self.t_shirt_size.value,
-                "Dob":     string_from_datetime(self.birthdate)
+                "Dob":     self.birthdate.isoformat()
             }
 
     camp_id = attrib(

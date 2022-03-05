@@ -46,32 +46,12 @@ def default_backoff(function):
     return inner_backoff
 
 
-def choose_http(*http_clients: AsyncClient | None):
+def choose_http(*http_clients: AsyncClient | None) -> AsyncClient:
     for http_client in http_clients:
         if http_client is None or http_client.is_closed:
             continue
         return http_client
     raise HTTPClientLookupError()
-
-
-def datetime_from_string(value: str) -> datetime:
-    """
-    Zamienia stringa na datetime (%Y-%m-%dT%H:%M:%S).
-
-    :param value: string do zamiany.
-    :returns: datetime ze stringa.
-    """
-    return datetime.strptime(value, "%Y-%m-%dT%H:%M:%S")
-
-
-def string_from_datetime(value: datetime) -> str:
-    """
-    Zamienia datetime na stringa (%Y-%m-%dT%H:%M:%S).
-
-    :param value: datetime do zamiany.
-    :returns: string z datetime.
-    """
-    return value.strftime("%Y-%m-%dT%H:%M:%S")
 
 
 def datetime_converter(value: str | datetime) -> datetime:
@@ -81,7 +61,7 @@ def datetime_converter(value: str | datetime) -> datetime:
     :param value: string do ewentualnej zamiany lub datetime.
     :returns: datetime ze stringa lub podany datetime.
     """
-    return value if isinstance(value, datetime) else datetime_from_string(value)
+    return value if isinstance(value, datetime) else datetime.fromisoformat(value.replace("Z", "+00:00"))
 
 
 def optional_character_converter(value: str) -> str | None:
