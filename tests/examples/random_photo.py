@@ -16,7 +16,7 @@ async def main():
         for castle_galleries in await client.get_castles():
             if not castle_galleries.active:
                 continue
-            for gallery in await castle_galleries.get():
+            async for gallery in castle_galleries:
                 if gallery.empty:
                     continue
                 photos = await gallery.get_photos()

@@ -377,6 +377,13 @@ class Gallery:
             **kwargs
         )
 
+    def __aiter__(self) -> AsyncIterator[Photo]:
+        async def gallery_iterator():
+            for photo in await self.get_photos():
+                yield photo
+
+        return gallery_iterator()
+
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
 class CastleGalleries:
@@ -469,6 +476,13 @@ class CastleGalleries:
             Gallery.from_dict(gallery, http=client)
             for gallery in await client.get_api_images_galleries_castle(self.castle.value)
         ]
+
+    def __aiter__(self) -> AsyncIterator[Gallery]:
+        async def castle_galleries_iterator():
+            for photo in await self.get():
+                yield photo
+
+        return castle_galleries_iterator()
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
@@ -692,6 +706,13 @@ class CampList:
             self._cache_camps = camps
             self.freshness = freshness
         return camps
+
+    def __aiter__(self) -> AsyncIterator[Camp]:
+        async def camp_list_iterator():
+            for photo in await self.get():
+                yield photo
+
+        return camp_list_iterator()
 
 
 @attrs(repr=True, slots=True, frozen=True, hash=True)
