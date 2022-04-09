@@ -425,7 +425,7 @@ class CastleGalleries:
         eq=False,
         repr=False
     )
-
+    # TODO GIŻYCKO
     _ID_TO_CASTLE_MAP: dict[int, Castle] = {
         1:  Castle.BARANOW,
         2:  Castle.CZOCHA,
@@ -439,7 +439,8 @@ class CastleGalleries:
         10: Castle.RACOT,
         11: Castle.RYBOKARTY,
         12: Castle.TUCZNO,
-        13: Castle.WITASZYCE
+        13: Castle.WITASZYCE,
+        14: Castle.GIZYCKO
     }
 
     @classmethod
@@ -988,7 +989,10 @@ class Reservation:
 @attrs(repr=True, slots=True, frozen=True, hash=True)
 class EventReservation:
     """
-    Reprezentuje rezerwacje wydarzenia (tylko inauguracja)
+    Reprezentuje rezerwacje wydarzenia (inauguracja).
+    Jeszcze nie wiadomo, jak będzie z majówką.
+    Docelowo mają korzystać z tego samego endpointa /api/Events/...,
+    ale formularz majówki wysyła zapytanie na /api/Events/Inauguration, co wydaje mi się błędem.
 
     :ivar option: opcja rezerwacji.
     :ivar name: imię dziecka.

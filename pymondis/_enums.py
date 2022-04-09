@@ -7,6 +7,7 @@ class CrewRole(Enum):
     """
     PSOR = "Tutor"
     HEADMASTER = "HeadMaster"
+    ADMIN = "Admin"
 
 
 class Castle(Enum):
@@ -26,6 +27,8 @@ class Castle(Enum):
     RYBOKARTY = "Pałac Rybokarty"
     TUCZNO = "Zamek Tuczno"
     WITASZYCE = "Pałac Witaszyce"
+
+    GIZYCKO = "Zamek Gizycki"
 
 
 class CampLevel(Enum):
