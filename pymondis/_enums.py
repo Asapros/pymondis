@@ -27,7 +27,7 @@ class Castle(Enum):
     RYBOKARTY = "Pałac Rybokarty"
     TUCZNO = "Zamek Tuczno"  # Usunięty
     WITASZYCE = "Pałac Witaszyce"
-    GIZYCKO = "Zamek Gizycki"
+    GIZYCKO = "Zamek Giżycki"
 
 
 class CampLevel(Enum):
