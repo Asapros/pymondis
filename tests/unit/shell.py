@@ -1,7 +1,7 @@
 from unittest import TestCase, main
 
 from pymondis import Castle
-from pymondis.shell import get_camps, get_castles, get_crew, get_galleries, get_plebiscite
+from pymondis.shell import get_camps, get_castles, get_crew, get_galleries, get_photos, get_plebiscite
 
 
 class TestClient(TestCase):
@@ -20,7 +20,9 @@ class TestClient(TestCase):
 
     def test_galleries(self):
         CASTLE = Castle.RACOT
-        print("galerie {}:".format(CASTLE), get_galleries(CASTLE))
+        galleries = get_galleries(CASTLE)
+        print("galerie {}:".format(CASTLE), galleries)
+        print("zdjęcia {}:".format(galleries[0].gallery_id), get_photos(galleries[0].gallery_id))
 
 
 if __name__ == "__main__":

@@ -425,7 +425,7 @@ class CastleGalleries:
         eq=False,
         repr=False
     )
-    # TODO GIŻYCKO
+
     _ID_TO_CASTLE_MAP: dict[int, Castle] = {
         1:  Castle.BARANOW,
         2:  Castle.CZOCHA,
