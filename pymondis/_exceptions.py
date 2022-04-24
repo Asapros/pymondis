@@ -38,5 +38,5 @@ class InactiveCastleError(Exception):
 
     def __init__(self, name: str):
         super().__init__(
-            "{} jest aktualnie nieaktywny i nie ma w nim żadnych galerii.".format(name)
+            "{} jest aktualnie nieaktywny i obecność galerii w nim nie jest gwarantowana.".format(name)
         )
