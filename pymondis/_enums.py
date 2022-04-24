@@ -25,9 +25,8 @@ class Castle(Enum):
     PULTUSK = "Zamek w Pułtusku"
     RACOT = "Pałac Racot"
     RYBOKARTY = "Pałac Rybokarty"
-    TUCZNO = "Zamek Tuczno"
+    TUCZNO = "Zamek Tuczno"  # Usunięty
     WITASZYCE = "Pałac Witaszyce"
-
     GIZYCKO = "Zamek Gizycki"
 
 

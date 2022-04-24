@@ -437,8 +437,8 @@ class CastleGalleries:
         8:  Castle.NIDZICA,
         9:  Castle.PULTUSK,
         10: Castle.RACOT,
-        11: Castle.RYBOKARTY,
-        12: Castle.TUCZNO,
+        11: Castle.TUCZNO,
+        12: Castle.RYBOKARTY,
         13: Castle.WITASZYCE,
         14: Castle.GIZYCKO
     }
