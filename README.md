@@ -3,6 +3,12 @@
 
 Nieoficjalny wrapper api [Quatromondis](https://quatromondis.pl/) w pythonie
 
+## Przedawnione
+Od ostatniej aktualizacji zmieniło się dużo rzeczy, więc większość może nie działać.
+I tak nikt nie jest zainteresowany projektem, więc mi się nie śpieszy.
+Planuje przepisać całą bibliotekę może do końca wakacji, jeśli będzie mi się chciało.
+Napisz na serwerze Quatromondis jeśli chesz to przyśpieszyć.
+
 ## Fajne rzeczy
 - Wszystkie zapytania są asynchroniczne z użyciem `httpx`
 - Moduł ``shell`` udostępnia prosty interfejs do używania biblioteki bez konieczności tworzenia asynchronicznej funckji
